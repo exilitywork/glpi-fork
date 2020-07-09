@@ -19660,7 +19660,7 @@ msgstr ""
 
 #: inc/ticket.class.php:5348
 msgid "Your tickets having rejected solution"
-msgstr "Заявки в которых отклонено решение"
+msgstr "Заявки с отклоненным решением"
 
 #: inc/ticket.class.php:5555
 msgid "Ticket followup"
