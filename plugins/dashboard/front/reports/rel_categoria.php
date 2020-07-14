@@ -291,7 +291,7 @@ else {
 
 			// Chamados
 			$sql_cham =
-			"SELECT glpi_tickets.id AS id, glpi_tickets.name AS name, glpi_tickets.date AS date, glpi_tickets.closedate as closedate,
+			"SELECT glpi_tickets.id AS id, glpi_tickets.name AS name, glpi_tickets.content AS content, glpi_tickets.date AS date, glpi_tickets.closedate as closedate,
 			glpi_tickets.type, glpi_tickets.status, FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`closedate` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time,
 			glpi_tickets.solve_delay_stat AS time_sec
 			FROM glpi_tickets
@@ -496,7 +496,7 @@ else {
 			<tr style='font-size:11px;'>
 				<td style='vertical-align:middle; text-align:center; font-weight:bold;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
 				<td style='vertical-align:middle;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])."  </td>
-				<td style='vertical-align:middle;'> ". substr($row['name'],0,55) ." </td>
+				<td title='".HTML::clean($row['content'])."'style='vertical-align:middle;'> ". substr($row['name'],0,55) ." </td>
 				<td style='vertical-align:middle;'> ". $row_user['name'] ." ".$row_user['sname'] ." </td>
 				<td style='vertical-align:middle;'> ". $row_tec['name'] ." ".$row_tec['sname'] ." </td>
 				<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
