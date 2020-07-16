@@ -202,6 +202,17 @@ if (isset($_POST["add"])) {
 }
 
 if (isset($_GET["id"]) && ($_GET["id"] > 0)) {
+// Дополнение - Запись информации о пользователе, заявке и времени ее просмотра в БД
+   $user_id_unread = $_SESSION['glpiID'];
+   $ticket_id_unread = $_GET["id"];
+   $reading_date = date('Y-m-d H:i:s');
+   $exist_row = $DB->query("SELECT * FROM glpi_plugin_unreadmessages WHERE users_id=".$user_id_unread." AND tickets_id=".$ticket_id_unread);
+   if($exist_row->num_rows > 0) {
+      $DB->query("UPDATE glpi_plugin_unreadmessages SET reading_date='".$reading_date."' WHERE users_id=".$user_id_unread." AND tickets_id=".$ticket_id_unread);
+   } else {
+      $DB->query("INSERT INTO glpi_plugin_unreadmessages (users_id, tickets_id, reading_date) VALUES (".$user_id_unread.", ".$ticket_id_unread.", '".$reading_date."')");
+   }
+// Конец дополнения
    if (Session::getCurrentInterface() == "helpdesk") {
       Html::helpHeader(Ticket::getTypeName(Session::getPluralNumber()), '', $_SESSION["glpiname"]);
    } else {
