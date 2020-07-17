@@ -5852,12 +5852,28 @@ JAVASCRIPT;
 		//Ниже 2 оригинальных строки
                //$status = Ticket::getStatus($data[$ID][0]['name']);
                //return Ticket::getStatusIcon($data[$ID][0]['name']) . "&nbsp;$status";
-		// Они заменены на следующие для добавления в статус состояния ОБНОВЛЕНО
+		// Они заменены на следующие для добавления в статус количества непрочитанных сообщений
 		$status =Ticket::getStatusIcon($data[$ID][0]['name']) . Ticket::getStatus($data[$ID][0]['name']);
-		if ($data['Ticket_64'][0]['id'] == Session::getLoginUserID() || Ticket::getStatus($data[$ID][0]['name']) == 'Закрыто' || !isset($data['Ticket_64'][0]['id'])) {
-		    return "<div>&nbsp;$status</div>";
-		} else {
-		    return "<div style='width: 100px'>&nbsp;$status<br><span style='color: red; font-weight: bold'>ОБНОВЛЕНА!!!</span></div>";
+		$reading_time = '';
+		$readinfo = $DB->query("SELECT reading_date FROM glpi_plugin_unreadmessages WHERE users_id=".Session::getLoginUserID()." AND tickets_id=".$data['Ticket_2'][0]['name']);
+		while ($ri = $readinfo->fetch_assoc()){
+		$reading_time = $ri['reading_date'];
+		}
+		$count_actions = $DB->query("SELECT `glpi_itilfollowups`.`date_mod` AS `date_mod`, `glpi_itilfollowups`.`items_id` AS `items_id`, `glpi_itilfollowups`.`users_id` AS `users_id` FROM `glpi_itilfollowups` WHERE `glpi_itilfollowups`.`items_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_itilfollowups`.`date_mod` > '".$reading_time."'")->num_rows;
+		$count_actions += $DB->query("SELECT `glpi_tickettasks`.`date_mod` AS `date_mod`, `glpi_tickettasks`.`tickets_id` AS `tickets_id`, `glpi_tickettasks`.`users_id` AS `users_id` FROM `glpi_tickettasks` WHERE `glpi_tickettasks`.`tickets_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_tickettasks`.`date_mod` > '".$reading_time."'")->num_rows;
+		$count_actions += $DB->query("SELECT `glpi_itilsolutions`.`date_creation` AS `date_creation`, `glpi_itilsolutions`.`items_id` AS `items_id`, `glpi_itilsolutions`.`users_id` AS `users_id` FROM `glpi_itilsolutions` WHERE `glpi_itilsolutions`.`items_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_itilsolutions`.`date_creation` > '".$reading_time."'")->num_rows;
+		$count_actions += $DB->query("SELECT `glpi_documents`.`date_mod` AS `date_mod`, `glpi_documents`.`tickets_id` AS `tickets_id`, `glpi_documents`.`users_id` AS `users_id` FROM `glpi_documents` WHERE `glpi_documents`.`tickets_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_documents`.`date_mod` > '".$reading_time."'")->num_rows;
+		$count_actions += $DB->query("SELECT `glpi_ticketvalidations`.`submission_date` AS `submission_date`, `glpi_ticketvalidations`.`tickets_id` AS `tickets_id`, `glpi_ticketvalidations`.`users_id` AS `users_id`, `glpi_ticketvalidations`.`users_id_validate` AS `users_id_validate`, `glpi_ticketvalidations`.`validation_date` AS `validation_date` FROM `glpi_ticketvalidations` WHERE `glpi_ticketvalidations`.`tickets_id` = ".$data['Ticket_2'][0]['name']." AND (`glpi_ticketvalidations`.`submission_date` > '".$reading_time."' OR `glpi_ticketvalidations`.`validation_date` > '".$reading_time."')")->num_rows;
+		$count_actions += $DB->query("SELECT `glpi_tickets`.`date` AS `date`, `glpi_tickets`.`users_id_recipient` AS `users_id_recipient` FROM `glpi_tickets` WHERE `glpi_tickets`.`id` = ".$data['Ticket_2'][0]['name']." AND `glpi_tickets`.`date` > '".$reading_time."'")->num_rows;
+		switch ($count_actions) {
+		    case 0:
+			return "<div style='width: 100px'>&nbsp;$status</div>";
+		    case 1:
+			$message_unread = $count_actions." новое сообщение";
+			return "<div style='width: 100px'>&nbsp;$status<br><span style='color: red; font-weight: bold'>$message_unread</span></div>";
+		    default:
+			$message_unread = $count_actions." новых сообщений";
+			return "<div style='width: 100px'>&nbsp;$status<br><span style='color: red; font-weight: bold'>$message_unread</span></div>";
 		}
 		// Конец замены
 
