@@ -862,9 +862,9 @@ class CommonGLPI {
          $name = '';
          if (isset($this->fields['id']) && ($this instanceof CommonDBTM)) {
             $name = $this->getName();
-            if ($_SESSION['glpiis_ids_visible'] || empty($name)) {
+//            if ($_SESSION['glpiis_ids_visible'] || empty($name)) {
                $name = sprintf(__('%1$s - ID %2$d'), $name, $this->fields['id']);
-            }
+//            }
          }
          if (isset($this->fields["entities_id"])
                && Session::isMultiEntitiesMode()
