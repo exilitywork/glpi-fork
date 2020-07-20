@@ -293,7 +293,7 @@ else {
 			$sql_cham =
 			"SELECT glpi_tickets.id AS id, glpi_tickets.name AS name, glpi_tickets.content AS content, glpi_tickets.date AS date, glpi_tickets.closedate as closedate,
 			glpi_tickets.type, glpi_tickets.status, FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`closedate` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time,
-			glpi_tickets.solve_delay_stat AS time_sec
+			glpi_tickets.solve_delay_stat AS time_sec, glpi_tickets.global_validation AS validation
 			FROM glpi_tickets
 			WHERE glpi_tickets.itilcategories_id IN (".$id_cat.")
 			AND glpi_tickets.is_deleted = 0
@@ -403,7 +403,10 @@ else {
 			SUM(case when glpi_tickets.status = 3 then 1 else 0 end) AS plan,
 			SUM(case when glpi_tickets.status = 4 then 1 else 0 end) AS pend,
 			SUM(case when glpi_tickets.status = 5 then 1 else 0 end) AS solve,
-			SUM(case when glpi_tickets.status = 6 then 1 else 0 end) AS close
+			SUM(case when glpi_tickets.status = 6 then 1 else 0 end) AS close,
+			SUM(case when glpi_tickets.global_validation = 2 then 1 else 0 end) AS waited,
+			SUM(case when glpi_tickets.global_validation = 3 then 1 else 0 end) AS granted,
+			SUM(case when glpi_tickets.global_validation = 4 then 1 else 0 end) AS refused
 			FROM glpi_tickets
 			WHERE glpi_tickets.is_deleted = '0'
 			AND glpi_tickets.date ".$datas2."
@@ -418,6 +421,9 @@ else {
 			$pend = $DB->result($result_stat,0,'pend') + 0;
 			$solve = $DB->result($result_stat,0,'solve') + 0;
 			$close = $DB->result($result_stat,0,'close') + 0;
+			$waited = $DB->result($result_stat,0,'waited') + 0;
+			$granted = $DB->result($result_stat,0,'granted') + 0;
+			$refused = $DB->result($result_stat,0,'refused') + 0;
 
 			echo "
 			<table align='right' style='margin-bottom:10px; border=1'>
@@ -430,15 +436,19 @@ else {
 				</tr>
 			</table>
 
-			<table style='font-size: 16px; font-weight:bold; width: 50%;' border=0>
+			<table style='font-size: 16px; font-weight:bold; width: 60%;' border=0>
 				<tr>
-					  <td><span style='color: #000;'>". _x('status','New').": </span><b>".$new." </b></td>
-			        <td><span style='color: #000;'>". __('Assigned'). ": </span><b>". ($assig + $plan) ."</b></td>
-			        <td><span style='color: #000;'>". __('Pending').": </span><b>".$pend." </b></td>
-			        <td><span style='color: #000;'>". __('Solved','dashboard').": </span><b>".$solve." </b></td>
-			        <td><span style='color: #000;'>". __('Closed').": </span><b>".$close." </b></td>
+					<td><span style='color: #000;'>". _x('status','New').": </span><b>".$new." </b></td>
+					<td><span style='color: #000;'>". __('Assigned'). ": </span><b>". ($assig + $plan) ."</b></td>
+					<td><span style='color: #000;'>". __('Pending').": </span><b>".$pend." </b></td>
+			    		<td><span style='color: #000;'>". __('Solved','dashboard').": </span><b>".$solve." </b></td>
+			    		<td><span style='color: #000;'>". __('Closed').": </span><b>".$close." </b></td>
 				</tr>
-				<tr><td>&nbsp;</td></tr>
+				<tr>
+					<td><span style='color: #000;'>". __('Granted').": </span><b>".$granted." </b></td>
+					<td><span style='color: #000;'>". __('Refused').": </span><b>".$refused." </b></td>
+					<td><span style='color: #000;'>". __('Waiting for approval').": </span><b>".$waited." </b></td>
+				</tr>
 				<tr><td>&nbsp;</td></tr>
 			</table>
 
@@ -453,6 +463,7 @@ else {
 						<th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Opened','dashboard')."</th>
 						<th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Closed')." </th>
 						<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Resolution time') ."</th>
+						<th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Approval status')." </th>
 					</tr>
 				</thead>
 			<tbody> ";
@@ -491,6 +502,26 @@ else {
 
 			$result_tec = $DB->query($sql_tec);
 			$row_tec = $DB->fetch_assoc($result_tec);
+			
+// Вывод статуса согласования
+			$status_val = '';
+			$bgcolor_val = '';
+			$out = '';
+			switch ($row['validation']) {
+				case '2':
+					$status_val = __('Waiting for approval');
+					$bgcolor_val = "#FFC65D";
+					break;
+				case '3':
+					$status_val = __('Granted');
+					$bgcolor_val = "#9BA563";
+					break;
+				case '4':
+					$status_val = __('Refused');
+					$bgcolor_val = "#cf9b9b";
+					break;
+			}
+			$out .= "<div style=\"background-color:".$bgcolor_val.";\">".$status_val.'</div>';
 
 			echo "
 			<tr style='font-size:11px;'>
@@ -502,6 +533,7 @@ else {
 				<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
 				<td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['closedate']) ." </td>
 				<td style='vertical-align:middle; text-align:center;'> ". time_ext($row['time']) ."</td>
+				<td style='vertical-align:middle; text-align:center;'> ".$out."</td>
 			</tr>";
 			}
 
