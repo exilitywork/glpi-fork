@@ -5857,7 +5857,7 @@ JAVASCRIPT;
 		$reading_time = '';
 		$readinfo = $DB->query("SELECT reading_date FROM glpi_plugin_unreadmessages WHERE users_id=".Session::getLoginUserID()." AND tickets_id=".$data['Ticket_2'][0]['name']);
 		while ($ri = $readinfo->fetch_assoc()){
-		$reading_time = $ri['reading_date'];
+		    $reading_time = $ri['reading_date'];
 		}
 		$count_actions = $DB->query("SELECT `glpi_itilfollowups`.`date_mod` AS `date_mod`, `glpi_itilfollowups`.`items_id` AS `items_id`, `glpi_itilfollowups`.`users_id` AS `users_id` FROM `glpi_itilfollowups` WHERE `glpi_itilfollowups`.`items_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_itilfollowups`.`date_mod` > '".$reading_time."'")->num_rows;
 		$count_actions += $DB->query("SELECT `glpi_tickettasks`.`date_mod` AS `date_mod`, `glpi_tickettasks`.`tickets_id` AS `tickets_id`, `glpi_tickettasks`.`users_id` AS `users_id` FROM `glpi_tickettasks` WHERE `glpi_tickettasks`.`tickets_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_tickettasks`.`date_mod` > '".$reading_time."'")->num_rows;
@@ -5867,6 +5867,12 @@ JAVASCRIPT;
 		$count_actions += $DB->query("SELECT `glpi_tickets`.`date` AS `date`, `glpi_tickets`.`users_id_recipient` AS `users_id_recipient` FROM `glpi_tickets` WHERE `glpi_tickets`.`id` = ".$data['Ticket_2'][0]['name']." AND `glpi_tickets`.`date` > '".$reading_time."'")->num_rows;
 		switch ($count_actions) {
 		    case 0:
+			$requester_row = $DB->query("SELECT `glpi_tickets_users`.`users_id` AS `users_id` FROM `glpi_tickets_users` WHERE (`glpi_tickets_users`.`type` = 1 AND `glpi_tickets_users`.`tickets_id` = ".$data['Ticket_2'][0]['name'].")");
+			$requester_id = $DB->result($requester_row,0,'users_id');
+			$requester_info = $DB->query("SELECT reading_date FROM glpi_plugin_unreadmessages WHERE users_id=".$requester_id." AND tickets_id=".$data['Ticket_2'][0]['name']." AND reading_date > '".$reading_time."'");
+			if ($DB->numrows($requester_info) > 0) {
+			    return "<div style='width: 100px'>&nbsp;$status<br><span style='color: green; font-weight: bold'>Просмотрена инициатором!</span></div>";
+			}
 			return "<div style='width: 100px'>&nbsp;$status</div>";
 		    case 1:
 			$message_unread = $count_actions." новое сообщение";
