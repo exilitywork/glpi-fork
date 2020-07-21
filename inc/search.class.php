@@ -5983,6 +5983,28 @@ JAVASCRIPT;
                }
                return $out;
 
+	    case "glpi_tickets.global_validation" :
+// вывод глобального статуса согласования в списке заявок
+		$status_val = '';
+	        $bgcolor_val = '';
+		$out = '';
+		switch ($data[$ID][0]['name']) {
+		    case '2':
+			$status_val = __('Waiting for approval');
+			$bgcolor_val = "#FFC65D";
+			break;
+		    case '3':
+			$status_val = __('Granted');
+			$bgcolor_val = "#9BA563";
+			break;
+		    case '4':
+			$status_val = __('Refused');
+			$bgcolor_val = "#cf9b9b";
+			break;
+		}
+		$out .= "<div style=\"background-color:".$bgcolor_val.";\">".$status_val.'</div>';
+		return "<div style='width: 100px; background-color:".$bgcolor_val.";'>".$status_val."</div>";
+
             case 'glpi_ticketsatisfactions.satisfaction' :
                if (self::$output_type == self::HTML_OUTPUT) {
                   return TicketSatisfaction::displaySatisfaction($data[$ID][0]['name']);
