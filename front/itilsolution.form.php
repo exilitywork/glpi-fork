@@ -43,7 +43,7 @@ $track->getFromDB($_POST['items_id']);
 $redirect = null;
 $handled = false;
 
-if (isset($_POST["add"])) {
+if (isset($_POST["addsolution"]) || isset($_POST["addclose"])) {
    $solution->check(-1, CREATE, $_POST);
    if (!$track->canSolve()) {
       Session::addMessageAfterRedirect(

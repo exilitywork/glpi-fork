@@ -2389,6 +2389,7 @@ class CommonDBTM extends CommonGLPI {
          'canedit'      => true,
          'addbuttons'   => [],
          'formfooter'   => null,
+'issolution' => false,
       ];
 
       if (is_array($options) && count($options)) {
@@ -2415,15 +2416,38 @@ class CommonDBTM extends CommonGLPI {
 
       if ($params['withtemplate']
           ||$this->isNewID($ID)) {
+	    // блок для добавления кнопок Добавить и Сохранить (изменен с учетом Решения)
+		if(!$params['issolution']) {
 
-         echo "<td class='center' colspan='".($params['colspan']*2)."'>";
+        	    echo "<td class='center' colspan='".($params['colspan']*2)."'>";
 
-         if (($ID <= 0) || ($params['withtemplate'] == 2)) {
-            echo Html::submit(_x('button', 'Add'), ['name' => 'add']);
-         } else {
-            //TRANS : means update / actualize
-            echo Html::submit(_x('button', 'Save'), ['name' => 'update']);
-         }
+		    if (($ID <= 0) || ($params['withtemplate'] == 2)) {
+        		echo Html::submit(_x('button', 'Add'), ['name' => 'add']);
+        	    } else {
+        		//TRANS : means update / actualize
+        		echo Html::submit(_x('button', 'Save'), ['name' => 'update']);
+        	    }
+		} else {
+		    echo "<td class='center'></td>";
+		    echo "<td class='center'>";
+
+		    if (($ID <= 0) || ($params['withtemplate'] == 2)) {
+        		echo Html::submit(_x('button', 'Add solution'), ['name' => 'addsolution']);
+        	    } else {
+        		// НЕ ИСПОЛЬЗУЕТСЯ! TRANS : means update / actualize для решений
+        		echo Html::submit(_x('button', 'Save solution'), ['name' => 'updatesolution']);
+        	    }
+		    echo "</td>";
+		    echo "<td class='center' colspan='".($params['colspan'])."'>";
+
+        	    if (($ID <= 0) || ($params['withtemplate'] == 2)) {
+        		echo Html::submit(_x('button', 'Add and close'), ['name' => 'addclose']);
+        	    } else {
+        		// НЕ ИСПОЛЬЗУЕТСЯ! TRANS : means update / actualize для решений
+        		echo Html::submit(_x('button', 'Save and close'), ['name' => 'saveclose']);
+        	    }
+
+		}
 
       } else {
          if ($params['candel']

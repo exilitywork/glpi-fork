@@ -613,6 +613,22 @@ msgctxt "button"
 msgid "Add"
 msgstr "Добавить"
 
+msgctxt "button"
+msgid "Add solution"
+msgstr "Добавить решение"
+
+msgctxt "button"
+msgid "Add and close"
+msgstr "Добавить и закрыть"
+
+msgctxt "button"
+msgid "Save solution"
+msgstr "Сохранить решение"
+
+msgctxt "button"
+msgid "Save and close"
+msgstr "Сохранить и закрыть"
+
 #: ajax/dropdownMassiveActionAddValidator.php:51
 #: ajax/dropdownMassiveActionAddValidator.php:121 inc/apiclient.class.php:190
 #: inc/auth.class.php:1477 inc/authldap.class.php:407
@@ -19660,7 +19676,7 @@ msgstr ""
 
 #: inc/ticket.class.php:5348
 msgid "Your tickets having rejected solution"
-msgstr "Заявки с отклоненным решением"
+msgstr ""
 
 #: inc/ticket.class.php:5555
 msgid "Ticket followup"

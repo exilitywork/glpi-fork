@@ -248,6 +248,7 @@ class ITILSolution extends CommonDBChild {
       if (!isset($options['noform'])) {
          $options['candel']   = false;
          $options['canedit']  = $canedit;
+	 $options['issolution']   = true;  // для уникальных кнопок добавления решения
          $this->showFormButtons($options);
       }
    }
@@ -347,8 +348,8 @@ class ITILSolution extends CommonDBChild {
             Entity::CONFIG_NEVER
          );
 
-         // 0 = immediatly
-         if ($autoclosedelay == 0) {
+         // 0 = immediatly либо закрытие по нажатию соответствующей кнопки
+         if ($autoclosedelay == 0 || isset($this->input['addclose'])) {
             $status = $item::CLOSED;
          }
       }
