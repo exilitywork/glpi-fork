@@ -1650,7 +1650,7 @@ class Html {
       $foundedNewVersion = array_key_exists('founded_new_version', $CFG_GLPI)
          ? $CFG_GLPI['founded_new_version']
          : '';
-      if (!empty($foundedNewVersion) && version_compare($currentVersion, $foundedNewVersion, '<')) {
+/*      if (!empty($foundedNewVersion) && version_compare($currentVersion, $foundedNewVersion, '<')) {
          echo "<td class='copyright'>";
          $latest_version = "<a href='http://www.glpi-project.org' target='_blank' title=\""
              . __s('You will find it on the GLPI-PROJECT.org site.')."\"> "
@@ -1659,7 +1659,7 @@ class Html {
          printf(__('A new version is available: %s.'), $latest_version);
 
          echo "</td>";
-      }
+      }*/
       echo "<td class='right'>" . self::getCopyrightMessage() . "</td>";
       echo "</tr></table></div>";
 
