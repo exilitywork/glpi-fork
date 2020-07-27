@@ -726,6 +726,42 @@ abstract class CommonITILValidation  extends CommonDBChild {
       $tmp    = [static::$items_id => $tID];
       $canadd = $this->can(-1, CREATE, $tmp);
       $rand   = mt_rand();
+// Добавление кнопок согласований в раздел согласований в заявке
+      $content_valid = "";
+      $iterator = $DB->Request([
+             'FROM'   => $this->getTable(),
+             'WHERE'  => [static::$items_id => $item->getField('id'), 'users_id_validate' => Session::getLoginUserID()],
+             'ORDER'  => 'submission_date DESC'
+      ]);
+      if (count($iterator) > 0) {
+	 while($validation = $iterator->next()) {
+	    $ticket_status = $DB->result($DB->query("SELECT status FROM glpi_tickets WHERE id=".$validation['tickets_id']),0,'status');
+	    if($validation['status'] == 2 && $ticket_status != 5 && $ticket_status != 6) { // 2 - WAITING - статус В ожидании согласования
+		$content_valid = "<table class='tab_cadre_fixe'><tr><td style='font-weight: bold'>Запрос на согласование => ".getUserName(Session::getLoginUserID())."</td>".
+		"<td>".
+		"<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
+		"<input type='hidden' name='entities_id' value='0'>".
+		"<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
+		"<input type='hidden' name='users_id_validate' value='".$validation['users_id']."'>".
+		"<input type='hidden' name='id' value='".$validation['id']."'>".
+		"<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
+		"<input type='hidden' name='status' value='3'>".
+		"<input type='submit' value='Согласовать' name='update' class='submit' style='background-color: green; color: white;'></form></td>".
+		"<td>".
+		"<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
+		"<input type='hidden' name='entities_id' value='0'>".
+		"<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
+		"<input type='hidden' name='users_id_validate' value='".$validation['users_id']."'>".
+		"<input type='hidden' name='id' value='".$validation['id']."'>".
+		"<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
+		"<input type='hidden' name='status' value='4'>".
+		"<input type='hidden' name='comment_validation' value='Отклонено! Причину уточните у проверяющего.'>".
+		"<input type='submit' value='Отклонить' name='update' class='submit' style='background-color: red; color: white;'></form></td>".
+		"</tr></table>";
+	    }
+	 }
+      }
+      echo $content_valid;
 
       if ($canadd) {
          $itemtype = static::$itemtype;
@@ -739,12 +775,12 @@ abstract class CommonITILValidation  extends CommonDBChild {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Global approval status')."</td>";
       echo "<td colspan='2'>";
-      if (Session::haveRightsOr(static::$rightname, TicketValidation::getValidateRights())) {
-         self::dropdownStatus("global_validation",
-                              ['value'    => $item->fields["global_validation"]]);
-      } else {
+//      if (Session::haveRightsOr(static::$rightname, TicketValidation::getValidateRights())) {
+//         self::dropdownStatus("global_validation",
+//                              ['value'    => $item->fields["global_validation"]]);
+//      } else {
          echo TicketValidation::getStatus($item->fields["global_validation"]);
-      }
+//      }
       echo "</td></tr>";
 
       echo "<tr>";
