@@ -751,6 +751,7 @@ abstract class CommonITILValidation  extends CommonDBChild {
 		"<input type='hidden' name='id' value='".$validation['id']."'>".
 		"<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
 		"<input type='hidden' name='status' value='3'>".
+		"<input type='hidden' name='comment_validation' value=''>".
 		"<input type='submit' value='Согласовать' name='update' class='submit' style='background-color: green; color: white;'></form></td>".
 		"<td>".
 		"<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".

@@ -6412,6 +6412,7 @@ abstract class CommonITILObject extends CommonDBTM {
         	"<input type='hidden' name='id' value='".$validation['id']."'>".
         	"<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
         	"<input type='hidden' name='status' value='3'>".
+		"<input type='hidden' name='comment_validation' value=''>".
         	"<input type='submit' value='Согласовать' name='update' class='submit' style='background-color: green; color: white;'></form></td>".
         	"<td class='center'>".
         	"<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
@@ -6442,16 +6443,34 @@ abstract class CommonITILObject extends CommonDBTM {
                ],
                'itiltype' => 'Validation'
             ];
-
+// 3 и 4 - коды статусов соответственно для Согласовано и Отклонено
+	    if(($validation['status'] == 3 || $validation['status'] == 4) && $ticket_status != 5 && $ticket_status != 6 && $validation['users_id_validate'] == Session::getLoginUserID()) { // 2 - WAITING - статус В ожидании соглас
+    		$content_valid = "<table><tr><td>".__('Validation request answer')." : ". _sx('status',
+                                                 ucfirst($validationClass::getStatus($validation['status'])))
+                                                   ."<br>".$validation['comment_validation']."</td></tr>".
+    		"<tr><td class='center'>".
+    		"<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
+    		"<input type='hidden' name='entities_id' value='0'>".
+    		"<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
+    		"<input type='hidden' name='users_id_validate' value='".$validation['users_id_validate']."'>".
+    		"<input type='hidden' name='id' value='".$validation['id']."'>".
+    		"<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
+    		"<input type='hidden' name='status' value='2'>".
+		"<input type='hidden' name='comment_validation' value=''>".
+    		"<input type='submit' value='Отменить' name='update' class='submit' style='submit'></form></td>".
+		"</tr></table>";
+	    } else {
+		$content_valid = __('Validation request answer')." : ". _sx('status',
+                                                 ucfirst($validationClass::getStatus($validation['status'])))
+                                                   ."<br>".$validation['comment_validation'];
+	    }
             if (!empty($validation['validation_date'])) {
                $timeline[$validation['validation_date']."_validation_".$validations_id] = [
                   'type' => $validationClass,
                   'item' => [
                      'id'        => $validations_id,
                      'date'      => $validation['validation_date'],
-                     'content'   => __('Validation request answer')." : ". _sx('status',
-                                                 ucfirst($validationClass::getStatus($validation['status'])))
-                                                   ."<br>".$validation['comment_validation'],
+                     'content'   => $content_valid,
                      'users_id'  => $validation['users_id_validate'],
                      'status'    => "status_".$validation['status'],
                      'can_edit'  => $canedit,
