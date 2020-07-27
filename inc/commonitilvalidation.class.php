@@ -364,8 +364,9 @@ abstract class CommonITILValidation  extends CommonDBChild {
          }
 
           //Set global validation to accepted to define one
-         if (($item->fields['global_validation'] == self::WAITING)
-             && in_array("status", $this->updates)) {
+//         if (($item->fields['global_validation'] == self::WAITING)
+//             && in_array("status", $this->updates)) {
+	 if (in_array("status", $this->updates)) {
 
             $input = [
                'id'                => $this->fields[static::$items_id],
@@ -378,10 +379,14 @@ abstract class CommonITILValidation  extends CommonDBChild {
    }
 
    function pre_deleteItem() {
-
+      global $DB;
       $item    = new static::$itemtype();
       if ($item->getFromDB($this->fields[static::$items_id])) {
-         if (($item->fields['global_validation'] == self::WAITING)) {
+         $valid_count = count($DB->Request([
+             'FROM'   => 'glpi_ticketvalidations',
+             'WHERE'  => ['tickets_id' => $item->fields['id']]
+         ]));
+         if (($item->fields['global_validation'] == self::WAITING) && $valid_count == 1) {
 
             $input = [
                'id'                => $this->fields[static::$items_id],
