@@ -301,7 +301,7 @@ class ITILSolution extends CommonDBChild {
          );
 
          // 0 = immediatly
-         if ($autoclosedelay != 0) {
+         if ($autoclosedelay != 0 && !isset($this->input['addclose'])) {
             $status = CommonITILValidation::WAITING;
          }
       }
