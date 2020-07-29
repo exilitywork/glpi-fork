@@ -432,19 +432,19 @@ select {
    border: 1px solid #bbb;
 }
 
-textarea, input:not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not(.select2-search__field) {
+textarea, input:not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not(.select2-search__field) {
    border: 1px solid #D3D3D3;
    font-size: 11px;
    border-radius: 3px;
    padding: 0 5px;
 }
 
-textarea, input:not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not(.select2-search__field):not([disabled]) {
+textarea, input:not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not(.select2-search__field):not([disabled]) {
    background-color: #FCFCFC;
    color: black;
 }
 
-textarea:focus, input:not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not(.select2-search__field):focus {
+textarea:focus, input:not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not(.select2-search__field):focus {
    border-color: #5897fb;
 }
 
@@ -587,6 +587,18 @@ input {
    }
 
    &.submit {
+      padding: 5px;
+      cursor: pointer;
+      height: auto;
+      font: bold 12px Arial, Helvetica;
+      color: #8f5a0a;
+      background-color: #FEC95C;
+      border: 0;
+      white-space: nowrap;
+      display: inline-block;
+   }
+
+   &.button {
       padding: 5px;
       cursor: pointer;
       height: auto;
@@ -1058,7 +1070,7 @@ span.vsubmit, a.vsubmit {
             }
          }
 
-         input.submit, span.vsubmit, a.vsubmit {
+         input.submit, span.vsubmit, a.vsubmit, input.button {
             white-space: nowrap;
          }
 
@@ -2678,6 +2690,13 @@ a.icon_nav_move {
    }
 
    input.submit {
+      margin-top: 20px;
+      width: 100%;
+      height: 30px;
+      font-size: 1.3em;
+   }
+
+   input.button {
       margin-top: 20px;
       width: 100%;
       height: 30px;
@@ -5342,6 +5361,10 @@ tr.linked-template td:not(.top) {
    input.submit {
       margin-top: .5em;
    }
+
+   input.button {
+      margin-top: .5em;
+   }
 }
 
 .missing {
@@ -6117,6 +6140,7 @@ input[name=as_map] {
       &[type=submit] {
          border: 1px transparent solid;
       }
+      
    }
 }
 

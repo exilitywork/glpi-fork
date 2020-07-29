@@ -5431,7 +5431,7 @@ JAVASCRIPT;
                               }
                               $out .= sprintf(__('%1$s %2$s'), $userdata['name'], $tooltip);
                               $count_display++;
-                           }
+                           } 
                         } else {
                            $out .= getUserName($data[$ID][$k]['name'], $showuserlink);
                            $count_display++;
@@ -5452,6 +5452,21 @@ JAVASCRIPT;
                               }
                            }
                         }
+                     }
+                  }
+                  // Вывод кнопки "Взять в работу" в списке заявок
+                  if ($out == "" && $ID == "Ticket_5") {
+                     $item = new Ticket;
+                     $item->getFromDB($data['Ticket_2'][0]['name']);
+                     $can_assigntome = $item->canAssignToMe();                     
+                     if ($can_assigntome
+                        && !in_array($item->fields['status'], $item->getClosedStatusArray())
+                        && !$item->isUser(CommonITILActor::ASSIGN, Session::getLoginUserID())
+                        && $item->isAllowedStatus($item->fields['status'], CommonITILObject::ASSIGNED)
+                        ) {
+                           $action = $item->getFormURL();
+                           $action = " submitGetLink('$action', {'addme_assign': 'addme_assign', 'tickets_id': '".$item->fields['id']."', 'source': 'search', '_glpi_csrf_token': '".Session::getNewCSRFToken()."', '_glpi_simple_form': '1'});";
+                           $out = "<input type='button' value='Взять в работу' class='submit' style='background-color: cornflowerblue; color: white;' onclick=\"$action\">";
                      }
                   }
                   return $out;

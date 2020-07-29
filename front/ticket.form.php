@@ -183,7 +183,12 @@ if (isset($_POST["add"])) {
    Event::log($_POST['tickets_id'], "ticket", 4, "tracking",
               //TRANS: %s is the user login
               sprintf(__('%s adds an actor'), $_SESSION["glpiname"]));
-   Html::redirect(Ticket::getFormURLWithID($_POST['tickets_id']));
+   if (isset($_POST['source']) && $_POST['source'] == 'search'){
+      //если заявка взята в работу со страницы списка заявок (search.class.php)
+      Html::redirect($CFG_GLPI["root_doc"]."/front/ticket.php");
+   } else {
+      Html::redirect(Ticket::getFormURLWithID($_POST['tickets_id']));
+   }
 } else if (isset($_REQUEST['delete_document'])) {
    $doc = new Document();
    $doc->getFromDB(intval($_REQUEST['documents_id']));
