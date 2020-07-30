@@ -271,8 +271,6 @@ if (isset($_GET["id"]) && ($_GET["id"] > 0)) {
    $track->display($_REQUEST);
 }
 
-echo Html::manageRefreshPage();
-
 if (Session::getCurrentInterface() == "helpdesk") {
    Html::helpFooter();
 } else {
