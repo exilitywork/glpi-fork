@@ -2214,6 +2214,9 @@ class Rule extends CommonDBTM {
                case "dropdown_status" :
                   return Ticket::getStatus($pattern);
 
+               case "dropdown_global_validation" :
+                  return CommonITILvalidation::getStatus($pattern);
+
                case "dropdown_priority" :
                   return Ticket::getPriorityName($pattern);
 
@@ -2342,6 +2345,11 @@ class Rule extends CommonDBTM {
 
             case "dropdown_tickettype" :
                Ticket::dropdownType($name, ['value' => $value]);
+               $display = true;
+               break;
+            
+            case "dropdown_global_validation" :
+               return CommonITILValidation::dropdownStatus($name, ['global' => true, 'value' => $value]);
                $display = true;
                break;
 

@@ -473,6 +473,13 @@ class RuleTicket extends Rule {
       $criterias['status']['name']                          = __('Status');
       $criterias['status']['type']                          = 'dropdown_status';
 
+      // "неродной" критерий - Общее состояние согласований
+      $criterias['global_validation']['table']              = 'glpi_tickets'; //таблица, из которой берется поле для критерия
+      $criterias['global_validation']['field']              = 'global_validation'; //название поля
+      $criterias['global_validation']['name']               = __('Global approval status');
+      $criterias['global_validation']['linkfield']          = 'global_validation'; //с каким полем связываем критерий
+      $criterias['global_validation']['type']               = 'dropdown_global_validation'; // тип критерия для его выбора в др. классах
+
       $criterias['_mailgate']['table']                      = 'glpi_mailcollectors';
       $criterias['_mailgate']['field']                      = 'name';
       $criterias['_mailgate']['name']                       = __('Mails receiver');
