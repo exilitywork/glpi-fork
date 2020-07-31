@@ -848,6 +848,9 @@ abstract class CommonDBChild extends CommonDBConnexity {
          $query['WHERE']['is_deleted'] = 0;
       }
 
+      echo "<input title='".__s('Default email')."' type='radio' name='_default_email'
+                  value='-1' checked> Без уведомлений<br>";
+
       $iterator = $DB->request($query);
       $count = 0;
       while ($data = $iterator->next()) {

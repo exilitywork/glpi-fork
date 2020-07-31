@@ -74,7 +74,9 @@ class UserEmail  extends CommonDBChild {
       ]);
 
       while ($row = $iterator->next()) {
-         return $row['email'];
+         if ($row['is_default'] == true) {
+            return $row['email'];
+         }
       }
 
       return '';
