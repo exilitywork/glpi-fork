@@ -264,17 +264,20 @@ function plugin_groupcategory_post_show_ticket(Ticket $ticket) {
         var requester_user_id = 0;
         ';
     $user_id = $_SESSION['glpiID'];
-	$select_ids = $_SESSION['select_ids'];
+    $select_ids = 3;
+    if(isset($_SESSION['select_ids'])){
+        $select_ids = $_SESSION['select_ids'];
+    }
 	$select_ids_isnull = false;
 	
-	if ($select_ids == null || $select_ids == 2)
+	/*if ($select_ids == null || $select_ids == 2)
 	{
 		$_SESSION['select_ids'] = 1;
 	}
 	else
 	{
 		$_SESSION['select_ids'] = 2;
-	}
+	}*/
 	
     $js_block .= 'var requester_user_id = ' . $user_id . ';';
 	$js_block .= 'var requester_select_ids = ' . $select_ids . ';';

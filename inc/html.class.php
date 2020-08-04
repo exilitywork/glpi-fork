@@ -4462,7 +4462,7 @@ class Html {
     * @return String
    **/
    static function jsAjaxDropdown($name, $field_id, $url, $params = []) {
-      global $CFG_GLPI;
+      global $CFG_GLPI, $DB;
 
       if (!isset($params['value'])) {
          $value = 0;
@@ -4499,89 +4499,102 @@ class Html {
             $options[$tag] = $val;
          }
       }
-
       $values = [$value => $valuename];
       $output = self::select($name, $values, $options);
-
-      $js = "
-         var params_$field_id = {";
-      foreach ($params as $key => $val) {
-         // Specific boolean case
-         if (is_bool($val)) {
-            $js .= "$key: ".($val?1:0).",\n";
-         } else {
-            $js .= "$key: ".json_encode($val).",\n";
+      $js = '';
+      // условие - если есть ограничения по категориям, то не использовать общий скрипт формирования списка категорий
+      $user_id = $_SESSION['glpiID'];
+      $is_restricted = false;
+      if ($name == 'itilcategories_id') {
+         $groups_id_records = $DB->query("SELECT glpi_groups_users.groups_id AS id FROM glpi_groups_users WHERE glpi_groups_users.users_id = ".$user_id);
+         foreach ($groups_id_records as $groups_id_record) {
+            $category_ids_records = $DB->query("SELECT glpi_plugin_groupcategory_groupcategories.category_ids AS category_ids FROM glpi_plugin_groupcategory_groupcategories
+                                                WHERE glpi_plugin_groupcategory_groupcategories.group_id = ".$groups_id_record['id']);
+            while ($cats = $category_ids_records->fetch_assoc()){
+               if (strlen($cats['category_ids'])) {
+                  $is_restricted = true;
+               }
+            }
          }
       }
-      $js.= "};
+      if (!$is_restricted) {   
+         $js .= "
+            var params_$field_id = {";
+         foreach ($params as $key => $val) {
+            // Specific boolean case
+            if (is_bool($val)) {
+               $js .= "$key: ".($val?1:0).",\n";
+            } else {
+               $js .= "$key: ".json_encode($val).",\n";
+            }
+         }
+            $js.= "};
 
-         $('#$field_id').select2({
-            width: '$width',
-            minimumInputLength: 0,
-            quietMillis: 100,
-            dropdownAutoWidth: true,
-            minimumResultsForSearch: ".$CFG_GLPI['ajax_limit_count'].",
-            ajax: {
-               url: '$url',
-               dataType: 'json',
-               type: 'POST',
-               data: function (params) {
-                  query = params;
-                  return $.extend({}, params_$field_id, {
-                     searchText: params.term,
-                     page_limit: ".$CFG_GLPI['dropdown_max'].", // page size
-                     page: params.page || 1, // page number
-                  });
+            $('#$field_id').select2({
+               width: '$width',
+               minimumInputLength: 0,
+               quietMillis: 100,
+               dropdownAutoWidth: true,
+               minimumResultsForSearch: ".$CFG_GLPI['ajax_limit_count'].",
+               ajax: {
+                  url: '$url',
+                  dataType: 'json',
+                  type: 'POST',
+                  data: function (params) {
+                     query = params;
+                     return $.extend({}, params_$field_id, {
+                        searchText: params.term,
+                        page_limit: ".$CFG_GLPI['dropdown_max'].", // page size
+                        page: params.page || 1, // page number
+                     });
+                  },
+                  processResults: function (data, params) {
+                     params.page = params.page || 1;
+                     var more = (data.count >= ".$CFG_GLPI['dropdown_max'].");
+
+                     return {
+                        results: data.results,
+                        pagination: {
+                              more: more
+                        }
+                     };
+                  }
                },
-               processResults: function (data, params) {
-                  params.page = params.page || 1;
-                  var more = (data.count >= ".$CFG_GLPI['dropdown_max'].");
+               templateResult: templateResult,
+               templateSelection: templateSelection
+            })
+            .bind('setValue', function(e, value) {
+               $.ajax('$url', {
+                  data: $.extend({}, params_$field_id, {
+                     _one_id: value,
+                  }),
+                  dataType: 'json',
+                  type: 'POST',
+               }).done(function(data) {
 
-                  return {
-                     results: data.results,
-                     pagination: {
-                           more: more
-                     }
-                  };
-               }
-            },
-            templateResult: templateResult,
-            templateSelection: templateSelection
-         })
-         .bind('setValue', function(e, value) {
-            $.ajax('$url', {
-               data: $.extend({}, params_$field_id, {
-                  _one_id: value,
-               }),
-               dataType: 'json',
-               type: 'POST',
-            }).done(function(data) {
+                  var iterate_options = function(options, value) {
+                     var to_return = false;
+                     $.each(options, function(index, option) {
+                        if (option.hasOwnProperty('id')
+                           && option.id == value) {
+                           to_return = option;
+                           return false; // act as break;
+                        }
 
-               var iterate_options = function(options, value) {
-                  var to_return = false;
-                  $.each(options, function(index, option) {
-                     if (option.hasOwnProperty('id')
-                         && option.id == value) {
-                        to_return = option;
-                        return false; // act as break;
-                     }
+                        if (option.hasOwnProperty('children')) {
+                           to_return = iterate_options(option.children, value);
+                        }
+                     });
 
-                     if (option.hasOwnProperty('children')) {
-                        to_return = iterate_options(option.children, value);
-                     }
-                  });
-
-                  return to_return;
-               };
-
-               var option = iterate_options(data.results, value);
+                     return to_return;                  };
+                  var option = iterate_options(data.results, value);
                if (option !== false) {
                   var newOption = new Option(option.text, option.id, true, true);
-                   $('#$field_id').append(newOption).trigger('change');
+                  $('#$field_id').append(newOption).trigger('change');
                }
-            });
-         });
+            });            });
          ";
+      }
       if (!empty($on_change)) {
          $js .= " $('#$field_id').on('change', function(e) {".
                   stripslashes($on_change)."});";

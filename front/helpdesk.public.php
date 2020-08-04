@@ -92,12 +92,6 @@ if (isset($_GET['create_ticket'])) {
    Html::helpHeader(__('New ticket'), $_SERVER['PHP_SELF'], $_SESSION["glpiname"]);
    $ticket = new Ticket();
    $ticket->showFormHelpdesk(Session::getLoginUserID());
-// Условие для однократного обновления страницы создания заявки, чтобы применились категории группы
-    if ($_GET['create_ticket'] == 1)
-    {
-	echo "<meta http-equiv='refresh' content='0;URL=". $CFG_GLPI['root_doc']."/front/helpdesk.public.php?create_ticket=2"."'>";
-    }
-// -------------------
 
 } else {
    Html::helpHeader(__('Home'), $_SERVER['PHP_SELF'], $_SESSION["glpiname"]);
