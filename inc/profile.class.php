@@ -48,7 +48,8 @@ class Profile extends CommonDBTM {
                                           'reservation', 'rssfeed_public',
                                           'show_group_hardware', 'task', 'ticket',
                                           'tickettemplates_id', 'ticket_cost',
-                                          'ticketvalidation', 'ticket_status','personalization'];
+                                          'ticketvalidation', 'ticket_status','personalization',
+                                       'document']; // добавлены права для доступа к документам для helpdesk
 
 
    /// Common fields used for all profiles type
