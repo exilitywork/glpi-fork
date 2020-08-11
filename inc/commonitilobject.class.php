@@ -4555,7 +4555,7 @@ abstract class CommonITILObject extends CommonDBTM {
    **/
    function updateDateMod($ID, $no_stat_computation = false, $users_id_lastupdater = 0) {
       global $DB;
-
+      echo "<script>console.log('Update ticket: ".$ID."');</script>";
       if ($this->getFromDB($ID)) {
          // Force date mod and lastupdater
          $update = ['date_mod' => $_SESSION['glpi_currenttime']];
@@ -6422,7 +6422,7 @@ abstract class CommonITILObject extends CommonDBTM {
         	"<input type='hidden' name='id' value='".$validation['id']."'>".
         	"<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
         	"<input type='hidden' name='status' value='4'>".
-        	"<input type='hidden' name='comment_validation' value='Отклонено! Причину уточните у проверяющего.'>".
+        	"<input type='hidden' name='comment_validation' value='-----'>".
         	"<input type='submit' value='Отклонить' name='update' class='submit' style='background-color: red; color: white;'></form></td>".
         	"</tr></table>";
     	    } else {
