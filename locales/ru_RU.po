@@ -20946,3 +20946,9 @@ msgid ""
 "config_db.php file"
 msgstr ""
 "Ошибка соединения с БД, проверьте параметры соединения в файле config_db.php"
+
+msgid "Automatic old tickets closing"
+msgstr "Автоматическое закрытие нерешенных старых заявок"
+
+msgid "Number of days this ticket not closed"
+msgstr "Количество дней, в течении которого заявка будет оставаться открытой с момента последнего ее обновления"

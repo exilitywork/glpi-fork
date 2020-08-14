@@ -4910,6 +4910,7 @@ class Ticket extends CommonITILObject {
             default :
                break;
          }
+
          echo "<span id='show_category_by_type'>";
          $opt['condition'] = $conditions;
          ITILCategory::dropdown($opt);
@@ -6472,8 +6473,67 @@ class Ticket extends CommonITILObject {
 
          case 'createinquest' :
             return ['description' => __('Generation of satisfaction surveys')];
+         
+         case 'closeold' :
+            return ['description' => __('Automatic old tickets closing'),
+                        'parameter'   => __('Number of days this ticket not closed')];
       }
       return [];
+   }
+
+
+   /**
+   * Задание cron для автоматического закрытия заявок без решения
+   *
+   * @param $task : crontask object
+   *
+   * @return integer (0 : nothing done - 1 : done)
+   **/
+   static function cronCloseOld($task) {
+      global $DB;
+
+      $ticket = new self();
+
+      // Recherche des entit??s
+      $tot = 0;
+
+      if ($task->fields['param'] > 0) {
+         $secs      = $task->fields['param'] * DAY_TIMESTAMP;
+         $send_time = date("U") - $secs;
+
+         $entities = $DB->request(
+            [
+               'SELECT' => 'id',
+               'FROM'   => Entity::getTable(),
+            ]
+         );
+         foreach ($entities as $entity) {
+         $query = "SELECT *
+                     FROM `glpi_tickets`
+                     LEFT JOIN `glpi_groups_tickets` `glpi_groups_tickets` ON `glpi_tickets`.`id` = `glpi_groups_tickets`.`tickets_id`
+                     WHERE `glpi_tickets`.`entities_id` = '".$entity['id']."'
+                           AND `glpi_tickets`.`status` < 5
+                           AND `glpi_tickets`.`is_deleted` = 0
+                           AND UNIX_TIMESTAMP(`glpi_tickets`.`date_mod`) <= '".$send_time."'
+                           AND `glpi_groups_tickets`.`groups_id` = 216"; // только для группы 216
+
+            $nb = 0;
+            foreach ($DB->request($query) as $tick) {
+               $ticket->update(['id'           => $tick['tickets_id'],
+                                    'status'       => 6,
+                                    '_auto_update' => true]);
+               $nb++;
+            }
+
+            if ($nb) {
+               $tot += $nb;
+               $task->addVolume($nb);
+               $task->log(Dropdown::getDropdownName('glpi_entities', $entity['id'])." : $nb");
+            }
+         }
+      }
+
+      return ($tot > 0 ? 1 : 0);
    }
 
 
