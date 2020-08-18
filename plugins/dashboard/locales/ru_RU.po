@@ -550,7 +550,7 @@ msgid "accumulated"
 msgstr "накопленный"
 
 msgid "Sons"
-msgstr "Потомок"
+msgstr "Подкатегории"
 
 msgid "Task sum"
 msgstr "Сумма задач"
