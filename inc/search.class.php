@@ -73,12 +73,6 @@ class Search {
 
       $params = self::manageParams($itemtype, $_GET);
       echo "<div class='search_page'>";
-
-      // добавлен дополнительный хук для копированием инфы с вкладки Домой (helpdesk page)
-      echo "<b>";
-      Plugin::doHook('display_central');
-      echo "</b>";
-
       self::showGenericSearch($itemtype, $params);
       if ($params['as_map'] == 1) {
          self::showMap($itemtype, $params);
@@ -2336,6 +2330,26 @@ class Search {
                         title=\"".__("Fold search")."\"></a>";
             }
          }
+      }
+      //Кнопки быстрых фильтров для заявок
+      if($itemtype == 'Ticket'){
+         $current_user = Session::getLoginUserID();
+         echo "</div><div class='search_actions' style='margin-top: 3px;'>";
+         echo "<span style='font: bold 12px Arial, Helvetica; color: #5f5f5f;' >Показать заявки: </span>";
+         echo "<input type='button' value='Все' class='submit'
+                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=12&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=all&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
+         echo "<input type='button' value='Открытые' class='submit'
+                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=12&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=notold&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
+         echo "<input type='button' value='Выполненные' class='submit'
+                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=12&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=old&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
+         echo "<input type='button' value='Мои (инициатор)' class='submit'
+                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=4&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notclosed&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
+         echo "<input type='button' value='Мои (исполнитель)' class='submit'
+                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=5&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notold&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
+         echo "<input type='button' value='Мои (согласование)' class='submit'
+                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=59&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=52&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=2&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
+         echo "<input type='button' value='Без исполнителя' class='submit'
+                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=8&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=mygroups&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notold&criteria%5B2%5D%5Blink%5D=AND&criteria%5B2%5D%5Bfield%5D=5&criteria%5B2%5D%5Bsearchtype%5D=equals&criteria%5B2%5D%5Bvalue%5D=0&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
       }
       echo "</div>"; //.search_actions
       $JS = <<<JAVASCRIPT
