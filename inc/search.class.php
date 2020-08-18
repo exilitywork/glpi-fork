@@ -73,6 +73,12 @@ class Search {
 
       $params = self::manageParams($itemtype, $_GET);
       echo "<div class='search_page'>";
+
+// добавлен дополнительный хук для копированием инфы с вкладки Домой (helpdesk page)
+      echo "<b>";
+      Plugin::doHook('display_central');
+      echo "</b>";
+
       self::showGenericSearch($itemtype, $params);
       if ($params['as_map'] == 1) {
          self::showMap($itemtype, $params);
