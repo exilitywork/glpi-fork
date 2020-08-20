@@ -74,7 +74,7 @@ class Search {
       $params = self::manageParams($itemtype, $_GET);
       echo "<div class='search_page'>";
 
-// добавлен дополнительный хук для копированием инфы с вкладки Домой (helpdesk page)
+      // добавлен дополнительный хук для копированием инфы с вкладки Домой (helpdesk page)
       echo "<b>";
       Plugin::doHook('display_central');
       echo "</b>";
@@ -2234,7 +2234,7 @@ class Search {
     * @return nothing (displays)
    **/
    static function showGenericSearch($itemtype, array $params) {
-      global $CFG_GLPI;
+      global $CFG_GLPI, $DB;
 
       // Default values of parameters
       $p['sort']         = '';
@@ -2342,20 +2342,62 @@ class Search {
          $current_user = Session::getLoginUserID();
          echo "</div><div class='search_actions' style='margin-top: 3px;'>";
          echo "<span style='font: bold 12px Arial, Helvetica; color: #5f5f5f;' >Показать заявки: </span>";
-         echo "<input type='button' value='Все' class='submit'
-                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=12&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=all&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
-         echo "<input type='button' value='Открытые' class='submit'
-                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=12&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=notold&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
-         echo "<input type='button' value='Выполненные' class='submit'
-                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=12&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=old&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
-         echo "<input type='button' value='Мои (инициатор)' class='submit'
-                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=4&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notclosed&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
-         echo "<input type='button' value='Мои (исполнитель)' class='submit'
-                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=5&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notold&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
-         echo "<input type='button' value='Мои (согласование)' class='submit'
-                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=59&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=52&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=2&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
-         echo "<input type='button' value='Без исполнителя' class='submit'
-                  onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=8&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=mygroups&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notold&criteria%5B2%5D%5Blink%5D=AND&criteria%5B2%5D%5Bfield%5D=5&criteria%5B2%5D%5Bsearchtype%5D=equals&criteria%5B2%5D%5Bvalue%5D=0&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
+         echo "<button type='button' value='Все' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=12&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=all&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>
+               Все";
+         echo "</button>";
+         $count_tickets_notold = $DB->result($DB->query("SELECT COUNT(DISTINCT `glpi_tickets`.`id`) as `count`
+                                                         FROM `glpi_tickets`
+                                                         LEFT JOIN `glpi_groups_tickets` `glpi_groups_tickets` ON `glpi_tickets`.`id` = `glpi_groups_tickets`.`tickets_id` 
+                                                         LEFT JOIN `glpi_groups_users` `glpi_groups_users` ON `glpi_groups_tickets`.`groups_id` = `glpi_groups_users`.`groups_id`
+                                                         WHERE (`glpi_groups_users`.`users_id` = ".$current_user."
+                                                            AND `glpi_tickets`.`status` < 5 
+                                                            AND `glpi_tickets`.`is_deleted` = FALSE)"), 0, 'count');
+         echo "<button type='button' value='Открытые' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=8&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=mygroups&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notold&itemtype=Ticket&start=0\";'>
+               Открытые";
+         echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".($count_tickets_notold ? $count_tickets_notold : 0)."</span></button>";
+         echo "<button type='button' value='Выполненные' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=8&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=mygroups&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=old&itemtype=Ticket&start=0\";'>
+               Выполненные";
+         $count_tickets = $DB->result($DB->query("SELECT COUNT(DISTINCT `glpi_tickets`.`id`) as `count` 
+                                                   FROM `glpi_tickets` 
+                                                   LEFT JOIN `glpi_tickets_users` `glpi_tickets_users` ON `glpi_tickets`.`id` = `glpi_tickets_users`.`tickets_id`
+                                                   WHERE `glpi_tickets`.`status` < 6 
+                                                      AND `glpi_tickets_users`.`users_id` = ".$current_user."
+                                                      AND `glpi_tickets_users`.`type` = 1
+                                                      AND `glpi_tickets`.`is_deleted` = FALSE"), 0, 'count');
+         echo "<button type='button' value='Мои (инициатор)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=4&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notclosed&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>
+               Мои (инициатор)";
+         echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".($count_tickets ? $count_tickets : 0)."</span></button>";
+         $count_tickets = $DB->result($DB->query("SELECT COUNT(DISTINCT `glpi_tickets`.`id`) as `count` 
+                                                   FROM `glpi_tickets` 
+                                                   LEFT JOIN `glpi_tickets_users` `glpi_tickets_users` ON `glpi_tickets`.`id` = `glpi_tickets_users`.`tickets_id`
+                                                   WHERE `glpi_tickets`.`status` < 5 
+                                                         AND `glpi_tickets_users`.`users_id` = ".$current_user." 
+                                                         AND `glpi_tickets_users`.`type` = 2
+                                                         AND `glpi_tickets`.`is_deleted` = FALSE"), 0, 'count');
+         echo "<button type='button' value='Мои (исполнитель)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=5&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notold&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>
+               Мои (исполнитель)";
+         echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".($count_tickets ? $count_tickets : 0)."</span></button>";
+         $count_tickets = $DB->result($DB->query("SELECT COUNT(DISTINCT `glpi_tickets`.`id`) as `count`
+                                                   FROM `glpi_tickets`
+                                                   LEFT JOIN `glpi_ticketvalidations` `glpi_ticketvalidations` ON `glpi_tickets`.`id` = `glpi_ticketvalidations`.`tickets_id`
+                                                   WHERE `glpi_ticketvalidations`.`users_id_validate` = ".$current_user."
+                                                      AND `glpi_tickets`.`status` < 5
+                                                      AND `glpi_tickets`.`global_validation` = 2
+                                                      AND `glpi_tickets`.`is_deleted` = FALSE)"), 0, 'count');
+         echo "<button type='button' value='Мои (согласование)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=59&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=52&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=2&criteria%5B2%5D%5Blink%5D=AND&criteria%5B2%5D%5Bfield%5D=12&criteria%5B2%5D%5Bsearchtype%5D=equals&criteria%5B2%5D%5Bvalue%5D=notold&search=Поиск&itemtype=Ticket&start=0\";'>
+               Мои (согласование)";
+         echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".($count_tickets ? $count_tickets : 0)."</span></button>";
+         $count_tickets = $DB->result($DB->query("SELECT COUNT(DISTINCT `glpi_tickets`.`id`) as `count`
+                                                   FROM `glpi_tickets` 
+                                                   INNER JOIN `glpi_tickets_users` `glpi_tickets_users` ON `glpi_tickets`.`id` = `glpi_tickets_users`.`tickets_id`
+                                                   LEFT JOIN `glpi_groups_tickets` `glpi_groups_tickets` ON `glpi_tickets`.`id` = `glpi_groups_tickets`.`tickets_id` LEFT JOIN `glpi_groups_users` `glpi_groups_users` ON `glpi_groups_tickets`.`groups_id` = `glpi_groups_users`.`groups_id`
+                                                   WHERE (`glpi_tickets_users`.`type` = 2 
+                                                      AND `glpi_groups_users`.`users_id` = ".$current_user."
+                                                      AND `glpi_tickets`.`status` < 5 
+                                                      AND `glpi_tickets`.`is_deleted` = FALSE)"), 0, 'count');
+         echo "<button type='button' value='Без исполнителя' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=8&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=mygroups&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notold&criteria%5B2%5D%5Blink%5D=AND&criteria%5B2%5D%5Bfield%5D=5&criteria%5B2%5D%5Bsearchtype%5D=equals&criteria%5B2%5D%5Bvalue%5D=0&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>
+               Без исполнителя";
+         echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".(($count_tickets_notold - $count_tickets) ? ($count_tickets_notold - $count_tickets) : 0)."</span></button>";
       }
       echo "</div>"; //.search_actions
       $JS = <<<JAVASCRIPT

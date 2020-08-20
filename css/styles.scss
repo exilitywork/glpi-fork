@@ -612,6 +612,20 @@ input {
    }
 }
 
+button {
+   &.submit {
+      padding: 5px;
+      cursor: pointer;
+      height: auto;
+      font: bold 12px Arial, Helvetica;
+      color: #8f5a0a;
+      background-color: #FEC95C;
+      border: 0;
+      white-space: nowrap;
+      display: inline-block;
+   }
+}
+
 span.vsubmit, a.vsubmit {
    padding: 5px;
    cursor: pointer;
@@ -1071,7 +1085,7 @@ span.vsubmit, a.vsubmit {
             }
          }
 
-         input.submit, span.vsubmit, a.vsubmit, input.button {
+         input.submit, span.vsubmit, a.vsubmit, input.button, button.submit {
             white-space: nowrap;
          }
 
@@ -2698,6 +2712,13 @@ a.icon_nav_move {
    }
 
    input.button {
+      margin-top: 20px;
+      width: 100%;
+      height: 30px;
+      font-size: 1.3em;
+   }
+
+   button.submit {
       margin-top: 20px;
       width: 100%;
       height: 30px;
@@ -5368,6 +5389,10 @@ tr.linked-template td:not(.top) {
    }
 
    input.button {
+      margin-top: .5em;
+   }
+
+   button.submit {
       margin-top: .5em;
    }
 }
