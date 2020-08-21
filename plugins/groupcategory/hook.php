@@ -91,7 +91,7 @@ function plugin_groupcategory_post_show_group(Group $group) {
                 foreach ($categories as $details) {
                     if (!isset($selected_categories[$details['id']])) {
                         $dom .= '<option value="' . $details['id'] . '">';
-                        $dom .= $details['completename'];
+                        $dom .= (strlen($details['completename']) > 10) ? substr($details['completename'], 10) :$details['completename'];
                         $dom .= '</option>' . "\n";
                     }
                 }

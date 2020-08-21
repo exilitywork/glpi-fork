@@ -41,7 +41,7 @@ class PluginGroupcategoryGroupcategory extends CommonDBTM {
 
             foreach ($all_categories as $details) {
                 if (in_array($details['id'], $category_ids)) {
-                    $selected_categories[$details['id']] = $details['completename'];
+                    $selected_categories[$details['id']] = (strlen($details['completename']) > 10) ? substr($details['completename'], 10) :$details['completename'];
                 }
             }
         } else {
