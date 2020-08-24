@@ -2383,7 +2383,7 @@ class Search {
                                                    WHERE `glpi_ticketvalidations`.`users_id_validate` = ".$current_user."
                                                       AND `glpi_tickets`.`status` < 5
                                                       AND `glpi_tickets`.`global_validation` = 2
-                                                      AND `glpi_tickets`.`is_deleted` = FALSE)"), 0, 'count');
+                                                      AND `glpi_tickets`.`is_deleted` = FALSE"), 0, 'count');
          echo "<button type='button' value='Мои (согласование)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=59&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=52&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=2&criteria%5B2%5D%5Blink%5D=AND&criteria%5B2%5D%5Bfield%5D=12&criteria%5B2%5D%5Bsearchtype%5D=equals&criteria%5B2%5D%5Bvalue%5D=notold&search=Поиск&itemtype=Ticket&start=0\";'>
                Мои (согласование)";
          echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".($count_tickets ? $count_tickets : 0)."</span></button>";
