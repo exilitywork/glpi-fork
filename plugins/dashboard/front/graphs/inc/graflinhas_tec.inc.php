@@ -19,8 +19,11 @@ if($interval <= "31") {
 	$queryd = "
 	SELECT DISTINCT   DATE_FORMAT(date, '%b-%d') AS day_l,  COUNT(id) AS nb, DATE_FORMAT(date, '%Y-%m-%d') AS day
 	FROM glpi_tickets
-	WHERE glpi_tickets.is_deleted = '0'
-	AND glpi_tickets.date ".$datas." 
+	WHERE glpi_tickets.is_deleted = '0'";
+	if(isset($id_req)) {
+		$queryd .= " AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req);
+	}
+	$queryd .= " AND glpi_tickets.date ".$datas." 
 	GROUP BY day
 	ORDER BY day ";
 
@@ -51,8 +54,11 @@ else {
 	SELECT DISTINCT   DATE_FORMAT(date, '%b-%Y') AS day_l,  COUNT(id) AS nb, DATE_FORMAT(date, '%Y-%m') AS day
 	FROM glpi_tickets
 	WHERE glpi_tickets.is_deleted = '0'
-	AND glpi_tickets.date ".$datas." 
-	GROUP BY day
+	AND glpi_tickets.date ".$datas;
+	if(isset($id_req)) {
+		$queryd .= " AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req);
+	}
+	$queryd .= " GROUP BY day
 	ORDER BY day ";
 
 	$resultd = $DB->query($queryd) or die('erro');
@@ -92,8 +98,11 @@ if($interval >= "31") {
 		AND glpi_tickets_users.users_id = ".$id_tec."
 		AND glpi_tickets_users.type = 2
 		".$entidade_age."
-		AND glpi_tickets_users.tickets_id = glpi_tickets.id
-		AND DATE_FORMAT(glpi_tickets.date, '%Y-%m' ) = '".$row_result['day']."'
+		AND glpi_tickets_users.tickets_id = glpi_tickets.id";
+		if(isset($id_req)) {
+			$querym .= " AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req);
+		}
+		$querym .= " AND DATE_FORMAT(glpi_tickets.date, '%Y-%m' ) = '".$row_result['day']."'
 		GROUP BY day
 		ORDER BY day ";
 		
@@ -124,8 +133,11 @@ else {
 		AND glpi_tickets.date ".$datas." 
 		AND glpi_tickets_users.users_id = ".$id_tec."
 		AND glpi_tickets_users.type = 2
-		".$entidade_age."
-		AND glpi_tickets_users.tickets_id = glpi_tickets.id
+		".$entidade_age;
+		if(isset($id_req)) {
+			$querym .= " AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req);
+		}
+		$querym .= " AND glpi_tickets_users.tickets_id = glpi_tickets.id
 		AND DATE_FORMAT(glpi_tickets.date, '%Y-%m-%d' ) = '".$row_result['day']."'
 		GROUP BY day
 		ORDER BY day ";
@@ -165,7 +177,11 @@ if($interval >= "31") {
 	AND glpi_tickets_users.users_id = ".$id_tec."
 	AND glpi_tickets_users.type = 2
 	".$entidade_age."
-	AND glpi_tickets_users.tickets_id = glpi_tickets.id	
+	AND glpi_tickets_users.tickets_id = glpi_tickets.id	";
+	if(isset($id_req)) {
+		$queryf .= " AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req);
+	}
+	$queryf .= "
 	GROUP BY day
 	ORDER BY day ";
 	
@@ -197,7 +213,11 @@ else {
 		AND glpi_tickets_users.users_id = ".$id_tec."
 		AND glpi_tickets_users.type = 2
 		".$entidade_age."
-		AND glpi_tickets_users.tickets_id = glpi_tickets.id	
+		AND glpi_tickets_users.tickets_id = glpi_tickets.id	";
+		if(isset($id_req)) {
+			$queryf .= " AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req);
+		}
+		$queryf .= "
 		AND DATE_FORMAT(glpi_tickets.closedate, '%Y-%m-%d' ) = '".$row_result['day']."'	
 		GROUP BY day
 		ORDER BY day ";
@@ -238,6 +258,9 @@ if($interval >= "31") {
 	".$entidade_age."
 	AND glpi_tickets_users.tickets_id = glpi_tickets.id
 	AND glpi_tickets.status <> 6 ";
+	if(isset($id_req)) {
+		$queryf .= " AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req);
+	}
 	
 	$resultb = $DB->query($queryb) or die('erro b');
 	$row_result2 = $DB->fetch_assoc($resultb);
@@ -265,6 +288,9 @@ else {
 	".$entidade_age."
 	AND glpi_tickets_users.tickets_id = glpi_tickets.id
 	AND glpi_tickets.status <> 6 ";
+	if(isset($id_req)) {
+		$queryf .= " AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req);
+	}
 
 	$resultb = $DB->query($queryb) or die('erro b');
 	$row_result2 = $DB->fetch_assoc($resultb);

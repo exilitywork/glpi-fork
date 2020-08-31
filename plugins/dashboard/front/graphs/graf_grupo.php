@@ -56,16 +56,16 @@ global $DB;
 
 </head>
 
-<body style="background-color: #e5e5e5; margin-left:0%;">
+<body onload="window.top.scrollTo(0,0);" style="background-color: #e5e5e5; margin-left:0%;">
 
 <?php
 
 global $DB;
 
-if(!empty($_POST['submit']))
+if(!empty($_REQUEST['date1']))
 {	
-	$data_ini =  $_POST['date1'];	
-	$data_fin = $_POST['date2'];
+	$data_ini =  $_REQUEST['date1'];	
+	$data_fin = $_REQUEST['date2'];
 }
 
 else {
@@ -80,6 +80,19 @@ if(!isset($_POST["sel_grp"])) {
 
 else {
 	$id_grp = $_POST["sel_grp"];
+}
+
+if(isset($_GET["req_grp"])) {
+	$id_req = $_GET["req_grp"];
+}
+
+if(isset($_GET["req_name"])) {
+	$req_name = $_GET["req_name"];
+}
+
+//tech GET
+if(isset($_GET["sel_grp"])) {
+	$id_grp = $_GET["sel_grp"];
 }
 
 $ano = date("Y");
@@ -182,7 +195,13 @@ $selected = $id_grp;
 <a href="../index.php"><i class="fa fa-home" style="font-size:14pt; margin-left:25px;"></i><span></span></a>
 	
 <div id="titulo_graf">
-   <?php echo __('Tickets','dashboard') ." ". __('by Group','dashboard'); ?> 
+   	<?php
+   		if(isset($id_req)) {
+			echo __('Tickets','dashboard') ." ". __('by Group','dashboard').", типу запроса";
+		} else {
+			echo __('Tickets','dashboard') ." ". __('by Group','dashboard');
+		}
+   	?>
 	<span style="color:#8b1a1a; font-size:35pt; font-weight:bold;"> </span> 
 </div>
 <div id="datas-tec" class="col-md-12 col-sm-12 fluid" > 
@@ -295,32 +314,50 @@ AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id
 AND glpi_tickets.is_deleted = 0
 AND glpi_tickets.date ".$datas."
 ". $entidade_age ." ";
+if(isset($id_req)) {
+	$query_quant .= "AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req);
+}
 
 $result_quant = $DB->query($query_quant);
 $total = $DB->fetch_assoc($result_quant);
 
 echo '<div id="entidade" class="col-md-12 col-sm-12 fluid" >';
-echo $grp_name['name']." - <span> ".$total['total']." ".__('Tickets','dashboard')."</span>";
+echo $grp_name['name'];
+if(isset($req_name)) {
+	echo '<span>, тип запроса: '.$req_name.'</span>';
+}
+echo " - <span> ".$total['total']." ".__('Tickets','dashboard')."</span>";
 echo "</div>";
- ?>
+?>
 
 
 <div id="graf_linhas" class="col-md-12" style="height: 450px; margin-left: 0px;">
 	<?php include ("./inc/graflinhas_grupo.inc.php"); ?>
 </div>
 
+<!--
 <div id="graf2" class="col-md-6" >
 	<?php  include ("./inc/grafpie_stat_grupo.inc.php"); ?>
 </div>
 
 <div id="graf_tipo" class="col-md-6" style="margin-left: 0%;">
 	<?php include ("./inc/grafpie_tipo_grupo.inc.php");  ?>
-</div>	
+</div>
+-->
 
 <div id="graf4" class="col-md-12" style="height: 450px; margin-left: 0px;">
 	<?php include ("./inc/grafcat_grupo.inc.php"); ?>
 </div>
 
+<?php
+	if(!isset($_GET["req_grp"])) {
+		echo "<div id='graf_req_grp' class='col-md-12 col-sm-12' style='height: 450px; margin-top: 30px;'>";
+		include ("./inc/grafreq_grp.inc.php");
+		echo "</div>";
+	}
+?>
+
+<!--
 <div id="graf_time" class="col-md-6">
 	<?php include ("./inc/grafbar_age_group.inc.php");  ?>
 </div>
@@ -328,6 +365,7 @@ echo "</div>";
 <div id="graf_prio" class="col-md-6" style="margin-left: 0%;">
 	<?php include ("./inc/grafpie_prio_group.inc.php");  ?>
 </div>
+-->
 
 <div id="graf_user" class="col-md-12" style="height: 450px; margin-top:30px; margin-bottom:120px; margin-left: 0px;">
 	<?php  include ("./inc/grafbar_user_grupo.inc.php"); ?>

@@ -483,7 +483,7 @@ else {
         	</div>
       </div>      
         
-		<iframe id="iframe1" name="iframe1" class="iframe" src="main.php"  width="100%" scrolling="no" style="overflow-x:hidden; overflow-y:hidden; border:0px solid white; overflow:hidden;"></iframe>          	
+		<iframe id="iframe1" onload="scroll(0,0);" name="iframe1" class="iframe" src="main.php"  width="100%" scrolling="no" style="overflow-x:hidden; overflow-y:hidden; border:0px solid white; overflow:hidden;"></iframe>          	
 </div>
 
 	<!-- /.site-holder -->

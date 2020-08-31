@@ -6,8 +6,11 @@ FROM glpi_tickets, glpi_tickets_users
 WHERE glpi_tickets.solvedate IS NOT NULL
 AND glpi_tickets.is_deleted = 0
 AND glpi_tickets.id = glpi_tickets_users.tickets_id
-AND glpi_tickets_users.type = 2
-GROUP BY days ";
+AND glpi_tickets_users.type = 2";
+if(isset($id_req)) {
+    $querydays .= " AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req);
+}
+$querydays .= " GROUP BY days ";
 		
 $resultdays = $DB->query($querydays) or die('erro');
 
@@ -36,8 +39,11 @@ AND glpi_tickets.is_deleted = 0
 AND glpi_tickets.id = glpi_tickets_users.tickets_id
 AND glpi_tickets_users.type = 2
 AND glpi_tickets_users.users_id = ".$id_tec."
-AND glpi_tickets.date ".$datas."
-".$entidade_age."
+AND glpi_tickets.date ".$datas;
+if(isset($id_req)) {
+    $query2 .= " AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req)." ";
+}
+$query2 .= $entidade_age."
 GROUP BY days ";
 		
 $result2 = $DB->query($query2) or die('erro');

@@ -58,15 +58,15 @@ global $DB;
 
 </head>
 
-<body style="background-color: #e5e5e5; margin-left:0%;">
+<body onload="window.top.scrollTo(0,0);" style="background-color: #e5e5e5; margin-left:0%;">
 <?php
 
 global $DB;
 
-if(!empty($_POST['submit']))
+if(!empty($_REQUEST['date1']))
 {	
-	$data_ini =  $_POST['date1'];	
-	$data_fin = $_POST['date2'];
+	$data_ini =  $_REQUEST['date1'];	
+	$data_fin = $_REQUEST['date2'];
 }
 
 else {
@@ -74,13 +74,26 @@ else {
 	$data_fin = date("Y-m-d");
 } 
 
-//tech
+//tech POST
 if(!isset($_POST["sel_tec"])) {
 	$id_tec = $_REQUEST["tec"];	
 }
 
 else {
 	$id_tec = $_POST["sel_tec"];
+}
+
+if(isset($_GET["req_tec"])) {
+	$id_req = $_GET["req_tec"];
+}
+
+if(isset($_GET["req_name"])) {
+	$req_name = $_GET["req_name"];
+}
+
+//tech GET
+if(isset($_GET["sel_tec"])) {
+	$id_tec = $_GET["sel_tec"];
 }
 
 $ano = date("Y");
@@ -171,7 +184,14 @@ function dropdown( $name, array $options, $selected=null )
 	<a href="../index.php"><i class="fa fa-home" style="font-size:14pt; margin-left:5%;"></i><span></span></a>
 	
 <div id="titulo_graf" >	
-   <?php echo __('Tickets','dashboard') ." ". __('by Technician','dashboard'); ?> <span style="color:#8b1a1a; font-size:35pt; font-weight:bold;">  </span> 
+	<?php 
+		if(isset($id_req)) {
+			echo __('Tickets','dashboard') ." ". __('by Technician','dashboard').", типу запроса";
+		} else {
+			echo __('Tickets','dashboard') ." ". __('by Technician','dashboard');
+		}
+   	?>
+   <span style="color:#8b1a1a; font-size:35pt; font-weight:bold;">  </span> 
 </div>
 
 <?php
@@ -307,6 +327,9 @@ AND glpi_tickets_users.users_id = ".$id_tec."
 AND glpi_tickets_users.type = 2
 ".$entidade_age."
 AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
+if(isset($id_req)) {
+	$query_total .= "AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req);
+}
 
 $result_total = $DB->query($query_total);
 $total_cham = $DB->fetch_assoc($result_total);
@@ -327,6 +350,9 @@ AND glpi_tickets_users.users_id = ".$id_tec."
 AND glpi_tickets_users.type = 2
 ".$entidade_age."
 AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
+if(isset($id_req)) {
+	$query_stat .= "AND glpi_tickets.requesttypes_id =".($id_req < 0 ? '0' : $id_req);
+}
 
 $result_stat = $DB->query($query_stat);
 
@@ -340,7 +366,11 @@ $close = $DB->result($result_stat,0,'close') + 0;
 echo '<div id="entidade2" class="col-md-12 fluid" style="margin-bottom: 15px;">';
 echo '<div id="name"  style="margin-top: 15px;">
 <span><img class="avatar2" width="43px" height="45px" src="'.User::getURLForPicture($tec_name["picture"]).'"></img>&nbsp;&nbsp;</span>
-<span>'.$tec_name['name'].' '.$tec_name['sname'].'</span> - <span> '.$total_cham['total'].' '.__('Tickets','dashboard').'</span></div>
+<span>'.$tec_name['name'].' '.$tec_name['sname'].'</span>';
+if(isset($req_name)) {
+	echo '<span>, тип запроса: '.$req_name.'</span>';
+}
+echo ' - <span> '.$total_cham['total'].' '.__('Tickets','dashboard').'</span></div>"
 	
 <div class="row" style="margin: 10px 0px 0 0;" >	
 <div style="margin-top: 20px; height: 45px;">
@@ -424,7 +454,20 @@ echo '<div id="name"  style="margin-top: 15px;">
 			<div id="graf_linhas" class="col-md-12 col-sm-12" style="height: 450px; margin-top: 25px; margin-left: -5px;">
 				<?php  include ("./inc/graflinhas_tec.inc.php"); ?>
 			</div>
-				
+
+			<div id="graf4" class="col-md-12 col-sm-12" style="height: 450px; ">
+				<?php include ("./inc/grafcat_tec.inc.php"); ?>
+			</div>
+
+			<?php
+			if(!isset($_GET["req_tec"])) {
+				echo "<div id='graf_req_tec' class='col-md-12 col-sm-12' style='height: 450px; margin-top: 30px;'>";
+				include ("./inc/grafreq_tec.inc.php");
+				echo "</div>";
+			}
+			?>
+
+		<!--	
 			<div id="graf2" class="col-md-6 col-sm-6" >
 				<?php  include ("./inc/grafpie_stat_tec.inc.php");  ?>
 			</div>
@@ -433,10 +476,6 @@ echo '<div id="name"  style="margin-top: 15px;">
 				<?php include ("./inc/grafpie_tipo_tec.inc.php");  ?>
 			</div>	
 			
-			<div id="graf4" class="col-md-12 col-sm-12" style="height: 450px; ">
-				<?php include ("./inc/grafcat_tec.inc.php"); ?>
-			</div>
-		
 			<div id="graf_time" class="col-md-6 col-sm-6">
 				<?php include ("./inc/grafbar_age_tecnico.inc.php");  ?>
 			</div>
@@ -444,11 +483,13 @@ echo '<div id="name"  style="margin-top: 15px;">
 			<div id="graf_prio" class="col-md-6 col-sm-6">
 				<?php include ("./inc/grafpie_prio_tecnico.inc.php");  ?>
 			</div>
+		-->
 			
 			<div id="graf_time1" class="col-md-6 col-sm-6" style="height: 450px; margin-top:30px; margin-bottom:0px; margin-left: 0px;">			
 				<?php  include ("./inc/grafpie_time_tecnico.inc.php"); ?>
 			</div>
 
+		<!--
 			<div id="graf_source" class="col-md-6 col-sm-6" style="height: 450px; margin-top:30px; margin-bottom:0px; margin-left: 0px;">						
 				<?php  include ("./inc/grafpie_origem_tecnico.inc.php"); ?>
 			</div>				
@@ -456,7 +497,7 @@ echo '<div id="name"  style="margin-top: 15px;">
 			<div id="graf_sat" class="col-md-12 col-sm-12" style="height: 450px; margin-top:30px !important; margin-bottom:30px; margin-left: 0px;">
 				<?php include ("./inc/grafcol_sat_tec.inc.php"); ?>
 			</div>
-		
+		-->
 		<?php 
 		
 		}

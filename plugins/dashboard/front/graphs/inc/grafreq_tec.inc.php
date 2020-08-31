@@ -10,32 +10,27 @@ else {
 }
 
 $query4 = "
-SELECT glpi_itilcategories.completename as cat_name, COUNT(glpi_tickets.id) as cat_tick, glpi_itilcategories.id
-FROM glpi_tickets, glpi_itilcategories, glpi_tickets_users
-WHERE glpi_itilcategories.id = glpi_tickets.itilcategories_id
-AND glpi_tickets.is_deleted = '0'
+SELECT glpi_requesttypes.name as req_name, COUNT(glpi_tickets.id) as req_tick, glpi_requesttypes.id
+FROM  glpi_tickets_users, glpi_tickets
+LEFT JOIN glpi_requesttypes
+ON glpi_tickets.requesttypes_id = glpi_requesttypes.id
+WHERE glpi_tickets.is_deleted = '0'
 AND glpi_tickets.date ".$datas."
 AND glpi_tickets_users.users_id = ".$id_tec."
 AND glpi_tickets_users.tickets_id = glpi_tickets.id
-AND glpi_tickets_users.type = 2 ";
-if(isset($id_req)) {
-    $query4 .= "AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
-}
-$query4 .= " GROUP BY glpi_itilcategories.id
-ORDER BY `cat_tick` DESC
+AND glpi_tickets_users.type = 2
+GROUP BY glpi_requesttypes.id
+ORDER BY `req_tick` DESC
 LIMIT 10 ";
 
 $result4 = $DB->query($query4) or die('erro');
 
 $arr_grf4 = array();
 while ($row_result = $DB->fetch_assoc($result4))	{
-    $row_result['cat_name'] = str_replace('>', '-', $row_result['cat_name']);
-    if(isset($id_req)) {
-        $v_row_result = "<a href=\"../reports/rel_tecnico.php?date1=".$data_ini."&date2=".$data_fin."&sel_tec=".$id_tec."&req_tec=".$id_req."&cat_tec=".$row_result['id']."&cat_name=".$row_result['cat_name']."&req_name=".$req_name."&con=1\">".$row_result['cat_name']." (".$row_result['id'].")</a>";
-    } else {
-        $v_row_result = "<a href=\"../reports/rel_tecnico.php?date1=".$data_ini."&date2=".$data_fin."&sel_tec=".$id_tec."&cat_tec=".$row_result['id']."&cat_name=".$row_result['cat_name']."&con=1\">".$row_result['cat_name']." (".$row_result['id'].")</a>";
-    }
-	$arr_grf4[$v_row_result] = $row_result['cat_tick'];
+    $row_result['req_name'] = $row_result['req_name'] ? $row_result['req_name'] : 'Без типа';
+    $row_result['id'] = $row_result['id'] ? $row_result['id'] : '-1';
+    $v_row_result = "<a href=\"?date1=".$data_ini."&date2=".$data_fin."&sel_tec=".$id_tec."&req_tec=".$row_result['id']."&req_name=".$row_result['req_name']."&con=1\">".$row_result['req_name']."</a>";
+    $arr_grf4[$v_row_result] = $row_result['req_tick'];
 }
 
 $grf4 = array_keys($arr_grf4) ;
@@ -50,12 +45,12 @@ echo "
 <script type='text/javascript'>
 
 $(function () {
-        $('#graf4').highcharts({
+        $('#graf_req_tec').highcharts({
             chart: {
                 type: 'bar'
             },
             title: {
-                text: 'Top 10 - ".__('Tickets by Category','dashboard')."'
+                text: 'Top 10 - Заявки по типу запроса'
             },
 
             xAxis: {

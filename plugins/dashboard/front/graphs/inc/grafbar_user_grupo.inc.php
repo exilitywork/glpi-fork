@@ -20,8 +20,11 @@ AND glpi_groups_users.groups_id = glpi_groups_tickets.groups_id
 AND glpi_tickets.date ".$datas."
 AND glpi_tickets.is_deleted = 0
 AND glpi_tickets_users.type = 2
-". $entidade_and ."
-GROUP BY uid
+". $entidade_and;
+if(isset($id_req)) {
+    $sql_grpb .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+}
+$sql_grpb .= " GROUP BY uid
 ORDER BY conta DESC
 LIMIT 10 ";
 

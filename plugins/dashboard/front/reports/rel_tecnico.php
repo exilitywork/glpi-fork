@@ -28,6 +28,14 @@ else {
     $id_tec = $_POST["sel_tec"];
 }
 
+if(!empty($_GET["cat_tec"])) {
+	$id_cat = $_GET["cat_tec"];
+}
+
+if(!empty($_GET["req_tec"])) {
+	$id_req = $_GET["req_tec"];
+}
+
 ?>
 
 <html>
@@ -82,7 +90,7 @@ else {
 
 </head>
 
-<body style="background-color: #e5e5e5; margin-left:0%;">
+<body onload="window.top.scrollTo(0,0);" style="background-color: #e5e5e5; margin-left:0%;">
 
 <?php
 # entity
@@ -137,7 +145,18 @@ a:hover { color: #000099; }
 
 <a href="../index.php"><i class="fa fa-home" style="font-size:14pt; margin-left:25px;"></i><span></span></a>
 
-    <div id="titulo_rel" > <?php echo __('Tickets','dashboard') .'  '. __('by Technician','dashboard') ?> </div>
+    <div id="titulo_rel" > 
+		<?php
+		$head_report = __('Tickets','dashboard') .'  '. __('by Technician','dashboard');
+		if(isset($id_req)) {
+			$head_report .= ", типу запроса";
+		}
+		if(isset($id_cat)) {
+			$head_report .= ", категории";
+		}
+		echo $head_report;
+		?> 
+	</div>
         <div id="datas-tec" class="span12 fluid" >
 		    <form id="form1" name="form1" class="form_rel" method="post" action="rel_tecnico.php?con=1">
 		    <table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef" >
@@ -303,8 +322,14 @@ if($con == "1") {
 	AND glpi_tickets_users.users_id = ". $id_tec ."
 	AND glpi_tickets.is_deleted = 0
 	AND glpi_tickets.date ".$datas2." 
-	AND glpi_tickets.status IN ".$status."
-	".$entidade."
+	AND glpi_tickets.status IN ".$status;
+	if(isset($id_cat)) {
+		$sql_cham .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
+	}
+	if(isset($id_req)) {
+		$sql_cham .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+	}
+	$sql_cham .= " ".$entidade."
 	GROUP BY id
 	ORDER BY id DESC ";
 	
@@ -322,8 +347,14 @@ if($con == "1") {
 	AND glpi_tickets_users.users_id = ". $id_tec ."
 	AND glpi_tickets.is_deleted = 0
 	AND ( glpi_tickets.date ".$datas2." OR glpi_tickets.closedate ".$datas2." )
-	AND glpi_tickets.status IN ".$status."
-	".$entidade."
+	AND glpi_tickets.status IN ".$status;
+	if(isset($id_cat)) {
+		$consulta1 .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
+	}
+	if(isset($id_req)) {
+		$consulta1 .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+	}
+	$consulta1 .= " ".$entidade."
 	GROUP BY id
 	ORDER BY id DESC ";
 	
@@ -342,8 +373,14 @@ if($con == "1") {
 	AND glpi_tickets_users.users_id = ". $id_tec ."
 	AND glpi_tickets.is_deleted = 0
 	AND glpi_tickets.date ".$datas2."
-	AND glpi_tickets.status IN ".$status_open."
-	".$entidade."
+	AND glpi_tickets.status IN ".$status_open;
+	if(isset($id_cat)) {
+		$sql_ab .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
+	}
+	if(isset($id_req)) {
+		$sql_ab .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+	}
+	$sql_ab .= " ".$entidade."
 	GROUP BY id
 	ORDER BY id DESC  " ;
 	
@@ -363,8 +400,14 @@ if($con == "1") {
 	AND `glpi_users`.id = glpi_tickets_users.users_id
 	AND glpi_tickets_users.type = 2
 	AND ( glpi_tickets.solvedate ".$datas2." OR glpi_tickets.closedate ".$datas2." )
-	AND glpi_tickets_users.users_id = ".$id_tec."
-	".$entidade." ";
+	AND glpi_tickets_users.users_id = ".$id_tec;
+	if(isset($id_cat)) {
+		$query_sat .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
+	}
+	if(isset($id_req)) {
+		$query_sat .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+	}
+	$query_sat .= " ".$entidade." ";
 	
 	$result_sat = $DB->query($query_sat) or die('erro');
 	$media = $DB->fetch_assoc($result_sat);
@@ -422,8 +465,14 @@ if($con == "1") {
 	AND glpi_tickets_users.type = 2
 	".$entidade_age."
 	AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
+	if(isset($id_cat)) {
+		$query_stat .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
+	}
+	if(isset($id_req)) {
+		$query_stat .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+	}
 
-   $result_stat = $DB->query($query_stat);
+    $result_stat = $DB->query($query_stat);
 
  	$new = $DB->result($result_stat,0,'new') + 0;
  	$assig = $DB->result($result_stat,0,'assig') + 0;
@@ -441,6 +490,12 @@ if($con == "1") {
 	AND glpi_tickets.status = 6
 	".$entidade_age."
 	AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
+	if(isset($id_cat)) {
+		$query_stat_c .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
+	}
+	if(isset($id_req)) {
+		$query_stat_c .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+	}
 
    $result_stat_c = $DB->query($query_stat_c);
    $close = $DB->result($result_stat_c,0,'close');
@@ -455,6 +510,12 @@ if($con == "1") {
 	AND glpi_tickets_users.type = 2
 	".$entidade_age."
 	AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
+	if(isset($id_cat)) {
+		$query_stat_s .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
+	}
+	if(isset($id_req)) {
+		$query_stat_s .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+	}
 
    $result_stat_s = $DB->query($query_stat_s);
    $solve = $DB->result($result_stat_s,0,'solve') + 0; 	
@@ -478,9 +539,26 @@ if($con == "1") {
 				</div>
 			</td>
 		</tr>
-	</table> ";
-
-
+	</table>";
+	if(isset($_GET['cat_name'])) {
+		echo "
+		<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
+		<tr style='width: 450px;'>
+			<td></td>
+			<td style='vertical-align:middle;'> <span style='color: #000;'>Категория: </span>".$_GET['cat_name']. "</td>
+		</tr>
+		</table>";
+	}
+	if(isset($_GET['req_name'])) {
+		echo "
+		<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
+		<tr style='width: 450px;'>
+			<td></td>
+			<td style='vertical-align:middle;'> <span style='color: #000;'>Тип запроса: </span>".$_GET['req_name']. "</td>
+		</tr>
+		</table>";
+	}
+	
 	if($satisfacao != '' || $satisfacao > 0) {
 
 	echo "
@@ -606,6 +684,12 @@ while($row = $DB->fetch_assoc($result_cham)){
 	AND glpi_tickets.id = ". $row['id'] ."
 	AND glpi_tickets_users.`users_id` = glpi_users.id
 	AND glpi_tickets_users.type = 1 ";
+	if(isset($id_cat)) {
+		$sql_user .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
+	}
+	if(isset($id_req)) {
+		$sql_user .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+	}
 	
 	$result_user = $DB->query($sql_user);			
 	$row_user = $DB->fetch_assoc($result_user);

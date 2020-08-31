@@ -5,8 +5,11 @@ SELECT count(glpi_tickets.id) AS chamados , DATEDIFF( glpi_tickets.solvedate, gl
 FROM glpi_tickets, glpi_groups_tickets
 WHERE glpi_tickets.solvedate IS NOT NULL
 AND glpi_tickets.is_deleted = 0
-AND glpi_tickets.id = glpi_groups_tickets.tickets_id
-GROUP BY days ";
+AND glpi_tickets.id = glpi_groups_tickets.tickets_id";
+if(isset($id_req)) {
+    $querydays .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+}
+$querydays .= " GROUP BY days ";
 		
 $resultdays = $DB->query($querydays) or die('erro');
 
@@ -35,8 +38,11 @@ AND glpi_tickets.is_deleted = 0
 AND glpi_tickets.id = glpi_groups_tickets.tickets_id
 AND glpi_groups_tickets.groups_id = ".$id_grp."
 AND glpi_tickets.date ".$datas."
-".$entidade_age."
-GROUP BY days ";
+".$entidade_age;
+if(isset($id_req)) {
+    $query2 .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+}
+$query2 .= " GROUP BY days ";
 		
 $result2 = $DB->query($query2) or die('erro');
 

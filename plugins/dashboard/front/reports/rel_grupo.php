@@ -9,10 +9,10 @@ global $DB;
 Session::checkLoginUser();
 Session::checkRight("profile", READ);
 
-if(!empty($_POST['submit']))
+if(!empty($_REQUEST['date1']))
 {
-    $data_ini = $_POST['date1'];
-    $data_fin = $_POST['date2'];
+    $data_ini = $_REQUEST['date1'];
+    $data_fin = $_REQUEST['date2'];
 }
 
 else {
@@ -20,12 +20,20 @@ else {
     $data_fin = date("Y-m-d");
 }
 
-if(!isset($_POST["sel_group"])) {
-    $id_grp = $_REQUEST["sel_group"];
+if(!isset($_POST["sel_grp"])) {
+    $id_grp = $_REQUEST["sel_grp"];
 }
 
 else {
-    $id_grp = $_POST["sel_group"];
+    $id_grp = $_POST["sel_grp"];
+}
+
+if(!empty($_GET["cat_grp"])) {
+	$id_cat = $_GET["cat_grp"];
+}
+
+if(!empty($_GET["req_grp"])) {
+	$id_req = $_GET["req_grp"];
 }
 
 
@@ -102,7 +110,7 @@ else {
 
 </head>
 
-<body style="background-color: #e5e5e5; margin-left:0%;">
+<body onload="window.top.scrollTo(0,0);" style="background-color: #e5e5e5; margin-left:0%;">
 
 <div id='content' >
     <div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
@@ -112,8 +120,19 @@ else {
 	    <div id="head-lg" class="fluid">
 
 	    <a href="../index.php"><i class="fa fa-home" style="font-size:14pt; margin-left:25px;"></i><span></span></a>
-	 <div id="titulo_rel"> <?php echo __('Tickets', 'dashboard').'  '. __('by Group', 'dashboard') ?>  </div>
-	     <div id="datas-tec" class="span12 fluid" >
+	 <div id="titulo_rel">
+		<?php
+		$head_report = __('Tickets', 'dashboard').'  '. __('by Group', 'dashboard');
+		if(isset($id_req)) {
+			$head_report .= ", типу запроса";
+		}
+		if(isset($id_cat)) {
+			$head_report .= ", категории";
+		}
+		echo $head_report;
+		?> 
+	</div>
+	    <div id="datas-tec" class="span12 fluid" >
 	        <form id="form1" name="form1" class="form_rel" method="post" action="rel_grupo.php?con=1">
 		    <table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef" >
 		       <tr>
@@ -174,7 +193,7 @@ else {
 			       $arr_grp[$v_row_result] = $row_result['name'] ." (". $row_result['id'] .")" ;
 			     }
 	
-			    $name = 'sel_group';
+			    $name = 'sel_grp';
 			    $options = $arr_grp;
 			    $selected = $id_grp;
 	
@@ -264,8 +283,14 @@ AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id
 AND glpi_tickets.is_deleted = 0
 AND glpi_tickets.date ".$datas2."
 AND glpi_tickets.status IN ".$status."
-".$entidade_t."
-GROUP BY id
+".$entidade_t;
+if(isset($id_cat)) {
+	$sql_cham .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
+}
+if(isset($id_req)) {
+	$sql_cham .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+}
+$sql_cham .= " GROUP BY id
 ORDER BY id DESC ";
 
 $result_cham = $DB->query($sql_cham);
@@ -286,6 +311,14 @@ AND glpi_tickets.date ".$datas2."
 AND glpi_groups_tickets.groups_id = ".$id_grp."
 AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id
 ".$entidade_t." ";
+if(isset($id_cat)) {
+	$query_stat .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
+}
+$test = 0;
+if(isset($id_req)) {
+	$query_stat .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+	$test = 2;
+}
 
 $result_stat = $DB->query($query_stat);
 
@@ -307,8 +340,14 @@ AND glpi_groups_tickets.tickets_id = glpi_tickets.id
 AND glpi_tickets.is_deleted = 0
 AND glpi_tickets.date ".$datas2."
 AND glpi_tickets.status IN ".$status."
-".$entidade_t."
-GROUP BY id
+".$entidade_t;
+if(isset($id_cat)) {
+	$consulta1 .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
+}
+if(isset($id_req)) {
+	$consulta1 .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+}
+$consulta1 .= " GROUP BY id
 ORDER BY id DESC ";
 
 $result_cons1 = $DB->query($consulta1);
@@ -330,6 +369,12 @@ AND glpi_tickets.is_deleted = 0
 AND glpi_tickets.date ".$datas2."
 AND glpi_tickets.status IN ".$status_open."
 ".$entidade_t." ";
+if(isset($id_cat)) {
+	$sql_ab .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
+}
+if(isset($id_req)) {
+	$sql_ab .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+}
 
 $result_ab = $DB->query($sql_ab) or die ("erro_ab");
 $data_ab = $DB->numrows($result_ab);
@@ -388,15 +433,33 @@ echo "
 	</div>
 	</td>
 </table> ";
+if(isset($_GET['cat_name'])) {
+	echo "
+	<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
+	<tr style='width: 450px;'>
+		<td></td>
+		<td style='vertical-align:middle;'> <span style='color: #000;'>Категория: </span>".$_GET['cat_name']. "</td>
+	</tr>
+	</table>";
+}
+if(isset($_GET['req_name'])) {
+	echo "
+	<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
+	<tr style='width: 450px;'>
+		<td></td>
+		<td style='vertical-align:middle;'> <span style='color: #000;'>Тип запроса: </span>".$_GET['req_name']. "</td>
+	</tr>
+	</table>";
+}
 
 // С„РѕСЂРјРёСЂРѕРІР°РЅРёРµ С€Р°РїРєРё С‚Р°Р±Р»РёС†С‹ РґР°РЅРЅС‹С…
 echo "
 <table align='right' style='margin-bottom:10px;'>
 	<tr>
 	    <td>
-		<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_grupo.php?con=1&stat=open&sel_group=".$id_grp."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened', 'dashboard') ." </button>
-		<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_grupo.php?con=1&stat=close&sel_group=".$id_grp."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed', 'dashboard')." </button>
-		<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_grupo.php?con=1&stat=all&sel_group=".$id_grp."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All', 'dashboard')." </button>
+		<button class='btn btn-primary btn-sm' type='button' name='abertos' value='Abertos' onclick='location.href=\"rel_grupo.php?con=1&stat=open&sel_grp=".$id_grp."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Opened', 'dashboard') ." </button>
+		<button class='btn btn-primary btn-sm' type='button' name='fechados' value='Fechados' onclick='location.href=\"rel_grupo.php?con=1&stat=close&sel_grp=".$id_grp."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('Closed', 'dashboard')." </button>
+		<button class='btn btn-primary btn-sm' type='button' name='todos' value='Todos' onclick='location.href=\"rel_grupo.php?con=1&stat=all&sel_grp=".$id_grp."&date1=".$data_ini2."&date2=".$data_fin2."\"' <i class='icon-white icon-trash'></i> ".__('All', 'dashboard')." </button>
 	    </td>
 	</tr>
 </table>
@@ -453,8 +516,7 @@ WHERE glpi_tickets_users.tickets_id = glpi_groups_tickets.tickets_id
 AND glpi_tickets_users.tickets_id = ".$row['id']."
 AND glpi_tickets_users.users_id = glpi_users.id
 AND glpi_tickets_users.type = 2
-".$entidade_u."
-";
+".$entidade_u;
 $result_user_tech = $DB->query($sql_user_tech);
 
     $row_user_tech = $DB->fetch_assoc($result_user_tech);
@@ -467,8 +529,7 @@ WHERE glpi_tickets_users.tickets_id = glpi_groups_tickets.tickets_id
 AND glpi_tickets_users.tickets_id = ".$row['id']."
 AND glpi_tickets_users.users_id = glpi_users.id
 AND glpi_tickets_users.type = 1
-".$entidade_u."
-";
+".$entidade_u;
 $result_user_req = $DB->query($sql_user_req);
 
     $row_user_req = $DB->fetch_assoc($result_user_req);
@@ -556,7 +617,7 @@ $(document).ready(function() {
                   {
                 	extend: "pdfHtml5",
                 	orientation: "landscape",
-                	message: "<?php echo __('Group'); ?> : <?php echo $grp_name['name'] .'  -  '; ?> <?php echo  __('Tickets','dashboard'); ?> : <?php echo $consulta .'  -  '; ?><?php echo  __('Period','dashboard'); ?> : <?php echo conv_data($data_ini2); ?> a <?php echo conv_data($data_fin2); ?> ",
+                	message: "<?php echo __('Group'); ?> : <?php echo $grp_name['name'] .'  -  '; ?> <?php echo  __('Tickets','dashboard'); ?> : <?php echo $consulta .'  -  '; ?><?php echo  __('Period','dashboard'); ?> : <?php echo conv_data($data_ini2); ?> - <?php echo conv_data($data_fin2); ?>",
                   } 
                   ]
              }
@@ -579,7 +640,7 @@ else {
     echo "
     <div id='nada_rel' class='well info_box fluid col-md-12'>
     <table class='table' style='font-size: 18px; font-weight:bold;' cellpadding = 1px>
-    <tr><td style='vertical-align:middle; text-align:center;'> <span style='color: #000;'>" . __('No ticket found', 'dashboard') . "</td></tr>
+    <tr><td style='vertical-align:middle; text-align:center;'> <span style='color: #000;'>Заявки не найдены</td></tr>
     <tr></tr>
     </table></div>";
 }
