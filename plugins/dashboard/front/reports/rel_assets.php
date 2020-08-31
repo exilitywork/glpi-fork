@@ -95,7 +95,7 @@ else {
 
 </head>
 
-<body style="background-color: #e5e5e5; margin-left:0%;">
+<body onload="window.top.scrollTo(0,0);" style="background-color: #e5e5e5; margin-left:0%;">
 <div id='content' >
 <div id='container-fluid' style="margin: <?php echo margins(); ?> ;">
 <div id="charts" class="fluid chart">
