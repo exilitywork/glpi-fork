@@ -36,6 +36,10 @@ if(!empty($_GET["req_tec"])) {
 	$id_req = $_GET["req_tec"];
 }
 
+if(!empty($_GET["sel_grp"])) {
+	$id_grp = $_GET["sel_grp"];
+}
+
 ?>
 
 <html>
@@ -153,6 +157,9 @@ a:hover { color: #000099; }
 		}
 		if(isset($id_cat)) {
 			$head_report .= ", категории";
+		}
+		if(isset($id_grp)) {
+			$head_report .= ", группе";
 		}
 		echo $head_report;
 		?> 
@@ -316,13 +323,20 @@ if($con == "1") {
 	"SELECT glpi_tickets.id AS id, glpi_tickets.name AS name, glpi_tickets.date AS date, glpi_tickets.closedate as closedate,
 	glpi_tickets.type, glpi_tickets.status, FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`closedate` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time,
 	glpi_tickets.solve_delay_stat AS time_sec
-	FROM `glpi_tickets_users`, glpi_tickets
-	WHERE glpi_tickets.id = glpi_tickets_users.`tickets_id`
+	FROM glpi_tickets_users, glpi_tickets";
+	if(isset($id_grp)) {
+		$sql_cham .= ", glpi_groups_tickets";
+	}
+	$sql_cham .= " WHERE glpi_tickets.id = glpi_tickets_users.`tickets_id`
 	AND glpi_tickets_users.type =2
 	AND glpi_tickets_users.users_id = ". $id_tec ."
 	AND glpi_tickets.is_deleted = 0
 	AND glpi_tickets.date ".$datas2." 
 	AND glpi_tickets.status IN ".$status;
+	if(isset($id_grp)) {
+		$sql_cham .= " AND glpi_groups_tickets.groups_id = ".$id_grp."
+						AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id";
+	}
 	if(isset($id_cat)) {
 		$sql_cham .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
 	}
@@ -341,13 +355,21 @@ if($con == "1") {
 	$consulta1 =
 	"SELECT glpi_tickets.id AS id, glpi_tickets.name, glpi_tickets.date AS adate, glpi_tickets.closedate AS sdate,
 	FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`date` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time
-	FROM `glpi_tickets_users` , glpi_tickets
-	WHERE glpi_tickets.id = glpi_tickets_users.`tickets_id`
+	FROM `glpi_tickets_users` , glpi_tickets ";
+	if(isset($id_grp)) {
+		$consulta1 .= ", glpi_groups_tickets";
+	}
+	$consulta1 .= " WHERE glpi_tickets.id = glpi_tickets_users.`tickets_id`
 	AND glpi_tickets_users.type = 2
 	AND glpi_tickets_users.users_id = ". $id_tec ."
 	AND glpi_tickets.is_deleted = 0
 	AND ( glpi_tickets.date ".$datas2." OR glpi_tickets.closedate ".$datas2." )
 	AND glpi_tickets.status IN ".$status;
+	if(isset($id_grp)) {
+		$consulta1 .= " AND glpi_groups_tickets.groups_id = ".$id_grp."
+						AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id";
+	}
+
 	if(isset($id_cat)) {
 		$consulta1 .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
 	}
@@ -367,13 +389,20 @@ if($con == "1") {
 	$sql_ab = "SELECT glpi_tickets.id AS id, glpi_tickets.name AS name, glpi_tickets.date AS date, glpi_tickets.closedate as closedate,
 	glpi_tickets.type, glpi_tickets.status, FROM_UNIXTIME( UNIX_TIMESTAMP( `glpi_tickets`.`closedate` ) , '%Y-%m' ) AS date_unix, AVG( glpi_tickets.solve_delay_stat ) AS time,
 	glpi_tickets.solve_delay_stat AS time_sec
-	FROM `glpi_tickets_users`, glpi_tickets
-	WHERE glpi_tickets.id = glpi_tickets_users.`tickets_id`
+	FROM `glpi_tickets_users`, glpi_tickets ";
+	if(isset($id_grp)) {
+		$sql_ab .= ", glpi_groups_tickets";
+	}
+	$sql_ab .= " WHERE glpi_tickets.id = glpi_tickets_users.`tickets_id`
 	AND glpi_tickets_users.type =2
 	AND glpi_tickets_users.users_id = ". $id_tec ."
 	AND glpi_tickets.is_deleted = 0
 	AND glpi_tickets.date ".$datas2."
 	AND glpi_tickets.status IN ".$status_open;
+	if(isset($id_grp)) {
+		$sql_ab .= " AND glpi_groups_tickets.groups_id = ".$id_grp."
+						AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id";
+	}
 	if(isset($id_cat)) {
 		$sql_ab .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
 	}
@@ -393,7 +422,11 @@ if($con == "1") {
 	//satisfação por tecnico
 	$query_sat = "
 	SELECT glpi_users.id, avg( `glpi_ticketsatisfactions`.satisfaction ) AS media
-	FROM glpi_tickets, `glpi_ticketsatisfactions`, glpi_tickets_users, glpi_users
+	FROM glpi_tickets, `glpi_ticketsatisfactions`, glpi_tickets_users, glpi_users ";
+	if(isset($id_grp)) {
+		$query_sat .= ", glpi_groups_tickets";
+	}
+	$query_sat .= " 
 	WHERE glpi_tickets.is_deleted = '0'
 	AND `glpi_ticketsatisfactions`.tickets_id = glpi_tickets.id
 	AND `glpi_ticketsatisfactions`.tickets_id = glpi_tickets_users.tickets_id
@@ -401,6 +434,10 @@ if($con == "1") {
 	AND glpi_tickets_users.type = 2
 	AND ( glpi_tickets.solvedate ".$datas2." OR glpi_tickets.closedate ".$datas2." )
 	AND glpi_tickets_users.users_id = ".$id_tec;
+	if(isset($id_grp)) {
+		$query_sat .= " AND glpi_groups_tickets.groups_id = ".$id_grp."
+						AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id";
+	}
 	if(isset($id_cat)) {
 		$query_sat .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
 	}
@@ -458,13 +495,20 @@ if($con == "1") {
 	SUM(case when glpi_tickets.status = 2 then 1 else 0 end) AS assig,
 	SUM(case when glpi_tickets.status = 3 then 1 else 0 end) AS plan,
 	SUM(case when glpi_tickets.status = 4 then 1 else 0 end) AS pend
-	FROM glpi_tickets_users, glpi_tickets
-	WHERE glpi_tickets.is_deleted = '0'
+	FROM glpi_tickets_users, glpi_tickets";
+	if(isset($id_grp)) {
+		$query_stat .= ", glpi_groups_tickets";
+	}
+	$query_stat .= " WHERE glpi_tickets.is_deleted = '0'
 	AND glpi_tickets.date ".$datas2." 
 	AND glpi_tickets_users.users_id = ".$id_tec."
 	AND glpi_tickets_users.type = 2
 	".$entidade_age."
 	AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
+	if(isset($id_grp)) {
+		$query_stat .= "AND glpi_groups_tickets.groups_id = ".$id_grp."
+						AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id";
+	}
 	if(isset($id_cat)) {
 		$query_stat .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
 	}
@@ -482,7 +526,11 @@ if($con == "1") {
 
    $query_stat_c = "
 	SELECT count( glpi_tickets.id ) AS close, glpi_tickets_users.users_id AS id
-	FROM glpi_tickets_users, glpi_tickets
+	FROM glpi_tickets_users, glpi_tickets ";
+	if(isset($id_grp)) {
+		$query_stat_c .= ", glpi_groups_tickets";
+	}
+	$query_stat_c .= " 
 	WHERE glpi_tickets.is_deleted = '0'
 	AND glpi_tickets.closedate ".$datas2." 
 	AND glpi_tickets_users.users_id = ".$id_tec."
@@ -490,6 +538,10 @@ if($con == "1") {
 	AND glpi_tickets.status = 6
 	".$entidade_age."
 	AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
+	if(isset($id_grp)) {
+		$query_stat_c .= " AND glpi_groups_tickets.groups_id = ".$id_grp."
+						AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id";
+	}
 	if(isset($id_cat)) {
 		$query_stat_c .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
 	}
@@ -503,13 +555,21 @@ if($con == "1") {
    
    $query_stat_s = "
 	SELECT SUM(case when glpi_tickets.status = 5 then 1 else 0 end) AS solve
-	FROM glpi_tickets_users, glpi_tickets
+	FROM glpi_tickets_users, glpi_tickets ";
+	if(isset($id_grp)) {
+		$query_stat_s .= ", glpi_groups_tickets";
+	}
+	$query_stat_s .= " 
 	WHERE glpi_tickets.is_deleted = '0'
 	AND (glpi_tickets.solvedate ".$datas2." OR glpi_tickets.closedate ".$datas2.") 
 	AND glpi_tickets_users.users_id = ".$id_tec."
 	AND glpi_tickets_users.type = 2
 	".$entidade_age."
 	AND glpi_tickets_users.tickets_id = glpi_tickets.id ";
+	if(isset($id_grp)) {
+		$query_stat_s .= " AND glpi_groups_tickets.groups_id = ".$id_grp."
+						AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id";
+	}
 	if(isset($id_cat)) {
 		$query_stat_s .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
 	}
@@ -555,6 +615,16 @@ if($con == "1") {
 		<tr style='width: 450px;'>
 			<td></td>
 			<td style='vertical-align:middle;'> <span style='color: #000;'>Тип запроса: </span>".$_GET['req_name']. "</td>
+		</tr>
+		</table>";
+	}
+
+	if(isset($_GET['grp_name'])) {
+		echo "
+		<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
+		<tr style='width: 450px;'>
+			<td></td>
+			<td style='vertical-align:middle;'> <span style='color: #000;'>Группа специалистов: </span>".$_GET['grp_name']. "</td>
 		</tr>
 		</table>";
 	}
@@ -679,11 +749,19 @@ while($row = $DB->fetch_assoc($result_cham)){
 	
 	//requerente	
 	$sql_user = "SELECT glpi_tickets.id AS id, glpi_tickets.name AS descr, glpi_users.firstname AS name, glpi_users.realname AS sname
-	FROM `glpi_tickets_users` , glpi_tickets, glpi_users
+	FROM `glpi_tickets_users` , glpi_tickets, glpi_users ";
+	if(isset($id_grp)) {
+		$sql_user .= ", glpi_groups_tickets";
+	}
+	$sql_user .= " 
 	WHERE glpi_tickets.id = glpi_tickets_users.`tickets_id`
 	AND glpi_tickets.id = ". $row['id'] ."
 	AND glpi_tickets_users.`users_id` = glpi_users.id
 	AND glpi_tickets_users.type = 1 ";
+	if(isset($id_grp)) {
+		$sql_user .= " AND glpi_groups_tickets.groups_id = ".$id_grp."
+						AND glpi_groups_tickets.`tickets_id` = glpi_tickets.id";
+	}
 	if(isset($id_cat)) {
 		$sql_user .= " AND glpi_tickets.itilcategories_id = ".$id_cat;
 	}

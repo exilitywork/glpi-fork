@@ -50,7 +50,12 @@ $(function () {
 
 				$categories = array();
 				while ($grupo = $DB->fetch_assoc($query_grp_b)) {
-				    $categories[] = $grupo['name']." ".$grupo['sname'];
+                    if(isset($id_req)) {
+                        $categories[] = "<a href=\"../reports/rel_tecnico.php?date1=".$data_ini."&date2=".$data_fin."&sel_grp=".$id_grp."&sel_tec=".$grupo['uid']."&grp_name=".$grp_name['name']."&req_tec=".$id_req."&req_name=".$req_name."&con=1\">".$grupo['name']." ".$grupo['sname']."</a>";
+                    } else {
+                        $categories[] = "<a href=\"../reports/rel_tecnico.php?date1=".$data_ini."&date2=".$data_fin."&sel_grp=".$id_grp."&sel_tec=".$grupo['uid']."&grp_name=".$grp_name['name']."&con=1\">".$grupo['name']." ".$grupo['sname']."</a>";
+                    }
+				    //$categories[] = $grupo['name']." ".$grupo['sname'];
 				}
 				echo json_encode($categories);
 				
