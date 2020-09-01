@@ -185,7 +185,7 @@ msgid "Clean"
 msgstr "Очистить"
 
 msgid "No ticket found"
-msgstr "Заявоки не найдены"
+msgstr "Заявки не найдены"
 
 msgid "Select a technician"
 msgstr "Выберите специалиста"
@@ -526,7 +526,7 @@ msgid "SLA"
 msgstr "SLA"
 
 msgid "Popup"
-msgstr "всплывающие уведомления"
+msgstr "Всплывающие уведомления"
 
 msgid "Enter the latitude and longitude in Administration -> Entities -> Dashboard Map"
 msgstr "Введите долготу и широту в Администрирование -> Организации -> Карта панели отчетов"
@@ -538,7 +538,7 @@ msgid "Dashboard map"
 msgstr "Карта панели отчетов"
 
 msgid "To configure Google maps"
-msgstr "настроить ключ API"
+msgstr "Настроить ключ API"
 
 msgid "Create an API key"
 msgstr "Создать ключ API"
