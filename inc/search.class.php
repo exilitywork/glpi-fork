@@ -2357,35 +2357,65 @@ class Search {
          echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".($count_tickets_notold ? $count_tickets_notold : 0)."</span></button>";
          echo "<button type='button' value='Выполненные' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=8&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=mygroups&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=old&itemtype=Ticket&start=0\";'>
                Выполненные";
-         $count_tickets = $DB->result($DB->query("SELECT COUNT(DISTINCT `glpi_tickets`.`id`) as `count` 
+         $tickets_list_ids = $DB->query("SELECT DISTINCT `glpi_tickets`.`id` as id
                                                    FROM `glpi_tickets` 
                                                    LEFT JOIN `glpi_tickets_users` `glpi_tickets_users` ON `glpi_tickets`.`id` = `glpi_tickets_users`.`tickets_id`
                                                    WHERE `glpi_tickets`.`status` < 6 
                                                       AND `glpi_tickets_users`.`users_id` = ".$current_user."
                                                       AND `glpi_tickets_users`.`type` = 1
-                                                      AND `glpi_tickets`.`is_deleted` = FALSE"), 0, 'count');
-         echo "<button type='button' value='Мои (инициатор)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=4&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notclosed&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>
-               Мои (инициатор)";
+                                                      AND `glpi_tickets`.`is_deleted` = FALSE");
+         foreach ($tickets_list_ids as $tickets_list_id){
+            $count_check = self::checkNewMessage($tickets_list_id['id']);
+            if ($count_check) {
+               break;
+            }
+         }
+         $count_tickets = $tickets_list_ids->num_rows;
+         echo "<button type='button' value='Мои (инициатор)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=4&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notclosed&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
+         if ($count_check && $count_tickets) {
+            echo "<i class='fas fa-envelope' style='color: red;'></i> ";
+         }
+         echo "Мои (инициатор)";
          echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".($count_tickets ? $count_tickets : 0)."</span></button>";
-         $count_tickets = $DB->result($DB->query("SELECT COUNT(DISTINCT `glpi_tickets`.`id`) as `count` 
+         $tickets_list_ids = $DB->query("SELECT DISTINCT `glpi_tickets`.`id` as id 
                                                    FROM `glpi_tickets` 
                                                    LEFT JOIN `glpi_tickets_users` `glpi_tickets_users` ON `glpi_tickets`.`id` = `glpi_tickets_users`.`tickets_id`
                                                    WHERE `glpi_tickets`.`status` < 5 
                                                          AND `glpi_tickets_users`.`users_id` = ".$current_user." 
                                                          AND `glpi_tickets_users`.`type` = 2
-                                                         AND `glpi_tickets`.`is_deleted` = FALSE"), 0, 'count');
-         echo "<button type='button' value='Мои (исполнитель)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=5&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notold&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>
-               Мои (исполнитель)";
+                                                         AND `glpi_tickets`.`is_deleted` = FALSE");
+         foreach ($tickets_list_ids as $tickets_list_id){
+            $count_check = self::checkNewMessage($tickets_list_id['id']);
+            if ($count_check) {
+               break;
+            }
+         }
+         $count_tickets = $tickets_list_ids->num_rows;
+         echo "<button type='button' value='Мои (исполнитель)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=5&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notold&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
+         if ($count_check && $count_tickets) {
+            echo "<i class='fas fa-envelope' style='color: red;'></i> ";
+         }
+         echo "Мои (исполнитель)";
          echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".($count_tickets ? $count_tickets : 0)."</span></button>";
-         $count_tickets = $DB->result($DB->query("SELECT COUNT(DISTINCT `glpi_tickets`.`id`) as `count`
+         $tickets_list_ids = $DB->query("SELECT DISTINCT `glpi_tickets`.`id` as id
                                                    FROM `glpi_tickets`
                                                    LEFT JOIN `glpi_ticketvalidations` `glpi_ticketvalidations` ON `glpi_tickets`.`id` = `glpi_ticketvalidations`.`tickets_id`
                                                    WHERE `glpi_ticketvalidations`.`users_id_validate` = ".$current_user."
                                                       AND `glpi_tickets`.`status` < 5
                                                       AND `glpi_tickets`.`global_validation` = 2
-                                                      AND `glpi_tickets`.`is_deleted` = FALSE"), 0, 'count');
-         echo "<button type='button' value='Мои (согласование)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=59&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=52&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=2&criteria%5B2%5D%5Blink%5D=AND&criteria%5B2%5D%5Bfield%5D=12&criteria%5B2%5D%5Bsearchtype%5D=equals&criteria%5B2%5D%5Bvalue%5D=notold&search=Поиск&itemtype=Ticket&start=0\";'>
-               Мои (согласование)";
+                                                      AND `glpi_tickets`.`is_deleted` = FALSE");
+         foreach ($tickets_list_ids as $tickets_list_id){
+            $count_check = self::checkNewMessage($tickets_list_id['id']);
+            if ($count_check) {
+               break;
+            }
+         }
+         $count_tickets = $tickets_list_ids->num_rows;
+         echo "<button type='button' value='Мои (согласование)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=59&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=52&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=2&criteria%5B2%5D%5Blink%5D=AND&criteria%5B2%5D%5Bfield%5D=12&criteria%5B2%5D%5Bsearchtype%5D=equals&criteria%5B2%5D%5Bvalue%5D=notold&search=Поиск&itemtype=Ticket&start=0\";'>";
+         if ($count_check && $count_tickets) {
+            echo "<i class='fas fa-envelope' style='color: red;'></i> ";
+         }
+         echo "Мои (согласование)";
          echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".($count_tickets ? $count_tickets : 0)."</span></button>";
          $count_tickets = $DB->result($DB->query("SELECT COUNT(DISTINCT `glpi_tickets`.`id`) as `count`
                                                    FROM `glpi_tickets` 
@@ -5937,17 +5967,7 @@ JAVASCRIPT;
                //return Ticket::getStatusIcon($data[$ID][0]['name']) . "&nbsp;$status";
 		// Они заменены на следующие для добавления в статус количества непрочитанных сообщений
 		$status =Ticket::getStatusIcon($data[$ID][0]['name']) . Ticket::getStatus($data[$ID][0]['name']);
-		$reading_time = '';
-		$readinfo = $DB->query("SELECT reading_date FROM glpi_plugin_unreadmessages WHERE users_id=".Session::getLoginUserID()." AND tickets_id=".$data['Ticket_2'][0]['name']);
-		while ($ri = $readinfo->fetch_assoc()){
-		    $reading_time = $ri['reading_date'];
-		}
-		$count_actions = $DB->query("SELECT `glpi_itilfollowups`.`date_mod` AS `date_mod`, `glpi_itilfollowups`.`items_id` AS `items_id`, `glpi_itilfollowups`.`users_id` AS `users_id` FROM `glpi_itilfollowups` WHERE `glpi_itilfollowups`.`items_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_itilfollowups`.`date_mod` > '".$reading_time."'")->num_rows;
-		$count_actions += $DB->query("SELECT `glpi_tickettasks`.`date_mod` AS `date_mod`, `glpi_tickettasks`.`tickets_id` AS `tickets_id`, `glpi_tickettasks`.`users_id` AS `users_id` FROM `glpi_tickettasks` WHERE `glpi_tickettasks`.`tickets_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_tickettasks`.`date_mod` > '".$reading_time."'")->num_rows;
-		$count_actions += $DB->query("SELECT `glpi_itilsolutions`.`date_creation` AS `date_creation`, `glpi_itilsolutions`.`items_id` AS `items_id`, `glpi_itilsolutions`.`users_id` AS `users_id` FROM `glpi_itilsolutions` WHERE `glpi_itilsolutions`.`items_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_itilsolutions`.`date_creation` > '".$reading_time."'")->num_rows;
-		$count_actions += $DB->query("SELECT `glpi_documents`.`date_mod` AS `date_mod`, `glpi_documents`.`tickets_id` AS `tickets_id`, `glpi_documents`.`users_id` AS `users_id` FROM `glpi_documents` WHERE `glpi_documents`.`tickets_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_documents`.`date_mod` > '".$reading_time."'")->num_rows;
-		$count_actions += $DB->query("SELECT `glpi_ticketvalidations`.`submission_date` AS `submission_date`, `glpi_ticketvalidations`.`tickets_id` AS `tickets_id`, `glpi_ticketvalidations`.`users_id` AS `users_id`, `glpi_ticketvalidations`.`users_id_validate` AS `users_id_validate`, `glpi_ticketvalidations`.`validation_date` AS `validation_date` FROM `glpi_ticketvalidations` WHERE `glpi_ticketvalidations`.`tickets_id` = ".$data['Ticket_2'][0]['name']." AND (`glpi_ticketvalidations`.`submission_date` > '".$reading_time."' OR `glpi_ticketvalidations`.`validation_date` > '".$reading_time."')")->num_rows;
-		$count_actions += $DB->query("SELECT `glpi_tickets`.`date` AS `date`, `glpi_tickets`.`users_id_recipient` AS `users_id_recipient` FROM `glpi_tickets` WHERE `glpi_tickets`.`id` = ".$data['Ticket_2'][0]['name']." AND `glpi_tickets`.`date` > '".$reading_time."'")->num_rows;
+      $count_actions = self::checkNewMessage($data['Ticket_2'][0]['name']);
 		switch ($count_actions) {
 		    case 0:
 			$requester_row = $DB->query("SELECT `glpi_tickets_users`.`users_id` AS `users_id` FROM `glpi_tickets_users` WHERE (`glpi_tickets_users`.`type` = 1 AND `glpi_tickets_users`.`tickets_id` = ".$data['Ticket_2'][0]['name'].")");
@@ -5959,7 +5979,7 @@ JAVASCRIPT;
 			    $count_actions_req += $DB->query("SELECT `glpi_tickettasks`.`date_mod` AS `date_mod`, `glpi_tickettasks`.`tickets_id` AS `tickets_id`, `glpi_tickettasks`.`users_id` AS `users_id` FROM `glpi_tickettasks` WHERE `glpi_tickettasks`.`tickets_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_tickettasks`.`date_mod` > '".$requester_date."'")->num_rows;
 			    $count_actions_req += $DB->query("SELECT `glpi_itilsolutions`.`date_creation` AS `date_creation`, `glpi_itilsolutions`.`items_id` AS `items_id`, `glpi_itilsolutions`.`users_id` AS `users_id` FROM `glpi_itilsolutions` WHERE `glpi_itilsolutions`.`items_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_itilsolutions`.`date_creation` > '".$requester_date."'")->num_rows;
 			    $count_actions_req += $DB->query("SELECT `glpi_documents`.`date_mod` AS `date_mod`, `glpi_documents`.`tickets_id` AS `tickets_id`, `glpi_documents`.`users_id` AS `users_id` FROM `glpi_documents` WHERE `glpi_documents`.`tickets_id` = ".$data['Ticket_2'][0]['name']." AND `glpi_documents`.`date_mod` > '".$requester_date."'")->num_rows;
-			    $count_actions_req += $DB->query("SELECT `glpi_ticketvalidations`.`submission_date` AS `submission_date`, `glpi_ticketvalidations`.`tickets_id` AS `tickets_id`, `glpi_ticketvalidations`.`users_id` AS `users_id`, `glpi_ticketvalidations`.`users_id_validate` AS `users_id_validate`, `glpi_ticketvalidations`.`validation_date` AS `validation_date` FROM `glpi_ticketvalidations` WHERE `glpi_ticketvalidations`.`tickets_id` = ".$data['Ticket_2'][0]['name']." AND (`glpi_ticketvalidations`.`submission_date` > '".$reading_time."' OR `glpi_ticketvalidations`.`validation_date` > '".$requester_date."')")->num_rows;
+			    $count_actions_req += $DB->query("SELECT `glpi_ticketvalidations`.`submission_date` AS `submission_date`, `glpi_ticketvalidations`.`tickets_id` AS `tickets_id`, `glpi_ticketvalidations`.`users_id` AS `users_id`, `glpi_ticketvalidations`.`users_id_validate` AS `users_id_validate`, `glpi_ticketvalidations`.`validation_date` AS `validation_date` FROM `glpi_ticketvalidations` WHERE `glpi_ticketvalidations`.`tickets_id` = ".$data['Ticket_2'][0]['name']." AND (`glpi_ticketvalidations`.`submission_date` > '".$requester_date."' OR `glpi_ticketvalidations`.`validation_date` > '".$requester_date."')")->num_rows;
 			    $count_actions_req += $DB->query("SELECT `glpi_tickets`.`date` AS `date`, `glpi_tickets`.`users_id_recipient` AS `users_id_recipient` FROM `glpi_tickets` WHERE `glpi_tickets`.`id` = ".$data['Ticket_2'][0]['name']." AND `glpi_tickets`.`date` > '".$requester_date."'")->num_rows;
 			    if($count_actions_req == 0) {
 				return "<div style='width: 100px'>&nbsp;$status<br><span style='color: green; font-weight: bold'>Просмотрена инициатором!</span></div>";
@@ -7807,5 +7827,24 @@ JAVASCRIPT;
                         AND `$alias`.`language` = '".
                               $_SESSION['glpilanguage']."'
                         AND `$alias`.`field` = '$field')";
+   }
+
+   /**
+    * Проверка наличия новых сообщений в заявке
+    */
+   static function checkNewMessage($id_item) {
+      global $DB;
+      $reading_time = '';
+		$readinfo = $DB->query("SELECT reading_date FROM glpi_plugin_unreadmessages WHERE users_id=".Session::getLoginUserID()." AND tickets_id=".$id_item);
+		while ($ri = $readinfo->fetch_assoc()) {
+         $reading_time = $ri['reading_date'];
+      }
+      $count_acts = $DB->query("SELECT `glpi_itilfollowups`.`date_mod` AS `date_mod`, `glpi_itilfollowups`.`items_id` AS `items_id`, `glpi_itilfollowups`.`users_id` AS `users_id` FROM `glpi_itilfollowups` WHERE `glpi_itilfollowups`.`items_id` = ".$id_item." AND `glpi_itilfollowups`.`date_mod` > '".$reading_time."'")->num_rows;
+		$count_acts += $DB->query("SELECT `glpi_tickettasks`.`date_mod` AS `date_mod`, `glpi_tickettasks`.`tickets_id` AS `tickets_id`, `glpi_tickettasks`.`users_id` AS `users_id` FROM `glpi_tickettasks` WHERE `glpi_tickettasks`.`tickets_id` = ".$id_item." AND `glpi_tickettasks`.`date_mod` > '".$reading_time."'")->num_rows;
+		$count_acts += $DB->query("SELECT `glpi_itilsolutions`.`date_creation` AS `date_creation`, `glpi_itilsolutions`.`items_id` AS `items_id`, `glpi_itilsolutions`.`users_id` AS `users_id` FROM `glpi_itilsolutions` WHERE `glpi_itilsolutions`.`items_id` = ".$id_item." AND `glpi_itilsolutions`.`date_creation` > '".$reading_time."'")->num_rows;
+		$count_acts += $DB->query("SELECT `glpi_documents`.`date_mod` AS `date_mod`, `glpi_documents`.`tickets_id` AS `tickets_id`, `glpi_documents`.`users_id` AS `users_id` FROM `glpi_documents` WHERE `glpi_documents`.`tickets_id` = ".$id_item." AND `glpi_documents`.`date_mod` > '".$reading_time."'")->num_rows;
+		$count_acts += $DB->query("SELECT `glpi_ticketvalidations`.`submission_date` AS `submission_date`, `glpi_ticketvalidations`.`tickets_id` AS `tickets_id`, `glpi_ticketvalidations`.`users_id` AS `users_id`, `glpi_ticketvalidations`.`users_id_validate` AS `users_id_validate`, `glpi_ticketvalidations`.`validation_date` AS `validation_date` FROM `glpi_ticketvalidations` WHERE `glpi_ticketvalidations`.`tickets_id` = ".$id_item." AND (`glpi_ticketvalidations`.`submission_date` > '".$reading_time."' OR `glpi_ticketvalidations`.`validation_date` > '".$reading_time."')")->num_rows;
+      $count_acts += $DB->query("SELECT `glpi_tickets`.`date` AS `date`, `glpi_tickets`.`users_id_recipient` AS `users_id_recipient` FROM `glpi_tickets` WHERE `glpi_tickets`.`id` = ".$id_item." AND `glpi_tickets`.`date` > '".$reading_time."'")->num_rows;
+      return $count_acts;
    }
 }
