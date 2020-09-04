@@ -5994,21 +5994,21 @@ JAVASCRIPT;
                $count_actions_req += $DB->query("SELECT `glpi_ticketvalidations`.`submission_date` AS `submission_date`, `glpi_ticketvalidations`.`tickets_id` AS `tickets_id`, `glpi_ticketvalidations`.`users_id` AS `users_id`, `glpi_ticketvalidations`.`users_id_validate` AS `users_id_validate`, `glpi_ticketvalidations`.`validation_date` AS `validation_date` FROM `glpi_ticketvalidations` WHERE `glpi_ticketvalidations`.`tickets_id` = ".$data['Ticket_2'][0]['name']." AND (`glpi_ticketvalidations`.`submission_date` > '".$requester_date."' OR `glpi_ticketvalidations`.`validation_date` > '".$requester_date."')")->num_rows;
                $count_actions_req += $DB->query("SELECT `glpi_tickets`.`date` AS `date`, `glpi_tickets`.`users_id_recipient` AS `users_id_recipient` FROM `glpi_tickets` WHERE `glpi_tickets`.`id` = ".$data['Ticket_2'][0]['name']." AND `glpi_tickets`.`date` > '".$requester_date."'")->num_rows;
                if($count_actions_req == 0) {
-                  return "<div style='width: 100px'>&nbsp;$status<br><span style='color: green; font-weight: bold'>Просмотрена!</span></div>";
+                  return "<div style='width: 110px'>&nbsp;$status<br><span style='color: green; font-weight: bold'>Просмотрена!</span></div>";
                }
             }
-			   return "<div style='width: 100px'>&nbsp;$status</div>";
+			   return "<div style='width: 110px'>&nbsp;$status</div>";
 		   case 1:
 			   $message_unread = "+".$count_actions." сообщение";
-            return "<div style='width: 100px'>&nbsp;$status<br><span style='color: red; font-weight: bold'>$message_unread</span></div>";
+            return "<div style='width: 110px'>&nbsp;$status<br><span style='color: red; font-weight: bold'>$message_unread</span></div>";
          case 2:
          case 3:
          case 4:
 			   $message_unread = "+".$count_actions." сообщения";
-			   return "<div style='width: 100px'>&nbsp;$status<br><span style='color: red; font-weight: bold'>$message_unread</span></div>";
+			   return "<div style='width: 110px'>&nbsp;$status<br><span style='color: red; font-weight: bold'>$message_unread</span></div>";
 		   default:
             $message_unread = "+".$count_actions." сообщений";
-            return "<div style='width: 100px'>&nbsp;$status<br><span style='color: red; font-weight: bold'>$message_unread</span></div>";
+            return "<div style='width: 110px'>&nbsp;$status<br><span style='color: red; font-weight: bold'>$message_unread</span></div>";
 		}
 		// Конец замены
 
