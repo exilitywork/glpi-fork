@@ -6119,7 +6119,7 @@ msgstr "Проверочный список"
 #: inc/ticket.class.php:3304
 msgctxt "status"
 msgid "New"
-msgstr "Новый"
+msgstr "Новая"
 
 #: inc/change.class.php:508
 msgid "Evaluation"
@@ -6147,7 +6147,7 @@ msgstr "Принята"
 #: inc/change.class.php:511 inc/commonitilobject.class.php:5112
 #: inc/problem.class.php:516 inc/ticket.class.php:3307
 msgid "Pending"
-msgstr "Ожидающие решения"
+msgstr "Отложена"
 
 #: inc/change.class.php:512
 msgctxt "change"
@@ -6170,7 +6170,7 @@ msgstr "Рассмотрение"
 #: inc/ticket.class.php:3309
 msgctxt "status"
 msgid "Closed"
-msgstr "Закрыто"
+msgstr "Закрыта"
 
 #: inc/change.class.php:520 inc/problem.class.php:522
 #: inc/ticket.class.php:3312
@@ -16963,12 +16963,12 @@ msgstr "Проблема обработки"
 #: inc/problem.class.php:514 inc/ticket.class.php:3305
 msgctxt "status"
 msgid "Processing (assigned)"
-msgstr "В работе (назначена)"
+msgstr "В работе"
 
 #: inc/problem.class.php:515 inc/ticket.class.php:3306
 msgctxt "status"
 msgid "Processing (planned)"
-msgstr "В работе (запланирована)"
+msgstr "В очереди"
 
 #: inc/problem.class.php:517 inc/ticket.class.php:3308
 msgctxt "status"
