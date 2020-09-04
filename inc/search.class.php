@@ -2371,9 +2371,13 @@ class Search {
             }
          }
          $count_tickets = $tickets_list_ids->num_rows;
-         echo "<button type='button' value='Мои (инициатор)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=4&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notclosed&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
+         echo "<button id='me_requester' type='button' value='Мои (инициатор)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=4&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notclosed&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
          if ($count_check && $count_tickets) {
             echo "<i class='fas fa-envelope' style='color: red;'></i> ";
+            $content = "<span style='color: red; font-weight: bold'>Для вас есть новые сообщения!<span>";
+            echo html::showToolTip($content,
+                              ['applyto' => 'me_requester',
+                                 'display' => false]);
          }
          echo "Мои (инициатор)";
          echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".($count_tickets ? $count_tickets : 0)."</span></button>";
@@ -2391,9 +2395,13 @@ class Search {
             }
          }
          $count_tickets = $tickets_list_ids->num_rows;
-         echo "<button type='button' value='Мои (исполнитель)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=5&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notold&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
+         echo "<button id='me_assign' type='button' value='Мои (исполнитель)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=5&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=12&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=notold&search=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&itemtype=Ticket&start=0\";'>";
          if ($count_check && $count_tickets) {
             echo "<i class='fas fa-envelope' style='color: red;'></i> ";
+            $content = "<span style='color: red; font-weight: bold'>Для вас есть новые сообщения!<span>";
+            echo html::showToolTip($content,
+                              ['applyto' => 'me_assign',
+                                 'display' => false]);
          }
          echo "Мои (исполнитель)";
          echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".($count_tickets ? $count_tickets : 0)."</span></button>";
@@ -2411,9 +2419,13 @@ class Search {
             }
          }
          $count_tickets = $tickets_list_ids->num_rows;
-         echo "<button type='button' value='Мои (согласование)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=59&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=52&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=2&criteria%5B2%5D%5Blink%5D=AND&criteria%5B2%5D%5Bfield%5D=12&criteria%5B2%5D%5Bsearchtype%5D=equals&criteria%5B2%5D%5Bvalue%5D=notold&search=Поиск&itemtype=Ticket&start=0\";'>";
+         echo "<button id='me_validation' type='button' value='Мои (согласование)' class='submit' onclick='location.href=\"/front/ticket.php?is_deleted=0&as_map=0&criteria%5B0%5D%5Blink%5D=AND&criteria%5B0%5D%5Bfield%5D=59&criteria%5B0%5D%5Bsearchtype%5D=equals&criteria%5B0%5D%5Bvalue%5D=".$current_user."&criteria%5B1%5D%5Blink%5D=AND&criteria%5B1%5D%5Bfield%5D=52&criteria%5B1%5D%5Bsearchtype%5D=equals&criteria%5B1%5D%5Bvalue%5D=2&criteria%5B2%5D%5Blink%5D=AND&criteria%5B2%5D%5Bfield%5D=12&criteria%5B2%5D%5Bsearchtype%5D=equals&criteria%5B2%5D%5Bvalue%5D=notold&search=Поиск&itemtype=Ticket&start=0\";'>";
          if ($count_check && $count_tickets) {
             echo "<i class='fas fa-envelope' style='color: red;'></i> ";
+            $content = "<span style='color: red; font-weight: bold'>Для вас есть новые сообщения!<span>";
+            echo html::showToolTip($content,
+                              ['applyto' => 'me_validation',
+                                 'display' => false]);
          }
          echo "Мои (согласование)";
          echo "<span class='primary-bg primary-fg count' style='font-size: 10px'>".($count_tickets ? $count_tickets : 0)."</span></button>";
@@ -6076,7 +6088,7 @@ JAVASCRIPT;
                   $hdecode = Html::entity_decode_deep($data[$ID][0]['content']);
                   $content = Toolbox::unclean_cross_side_scripting_deep($hdecode);
                   $out     = sprintf(__('%1$s %2$s'), $out,
-                                     Html::showToolTip(nl2br(Html::Clean($content)),
+                                     Html::showToolTip(nl2br(Html::Clean($content))."TEST",
                                                              ['applyto' => $itemtype.
                                                                                 $data[$ID][0]['id'],
                                                                    'display' => false]));
