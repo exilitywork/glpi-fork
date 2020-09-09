@@ -232,8 +232,11 @@ if (isset($_GET["id"]) && ($_GET["id"] > 0)) {
       }
    }
 
-
    $options['id'] = $_GET["id"];
+   if(isset($_REQUEST['help_valid'])) {
+      $options['help_valid'] = $_REQUEST['help_valid'];
+   }
+
    $track->display($options);
 
    if (isset($_GET['_sol_to_kb'])) {

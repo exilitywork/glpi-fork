@@ -775,8 +775,13 @@ abstract class CommonITILValidation  extends CommonDBChild {
       }
       echo "<table class='tab_cadre_fixe'>";
       echo "<tr>";
-      echo "<th colspan='3'>".self::getTypeName(Session::getPluralNumber())."</th>";
-      echo "</tr>";
+      echo "<th colspan='3'>".self::getTypeName(Session::getPluralNumber());
+      if (isset($_REQUEST['help_valid'])) {
+         echo "<span id='help_valid_header' class='count' style='background: LightSalmon;'>Нажмите кнопку Послать запрос на согласование</span>";
+      } else {
+         echo "<span class='primary-bg primary-fg count'><a href='/front/ticket.form.php?id=".$_REQUEST['id']."&help_valid=1000' style='color: white'>Помощь в согласовании заявок!</a></span>";
+      }
+      echo "</th></tr>";
 
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__('Global approval status')."</td>";
@@ -825,13 +830,24 @@ abstract class CommonITILValidation  extends CommonDBChild {
       if ($canadd) {
          echo "<script type='text/javascript' >\n";
          echo "function viewAddValidation" . $tID . "$rand() {\n";
-         $params = ['type'             => $this->getType(),
+         if (isset($_REQUEST['help_valid'])) {
+            $params = ['type'             => $this->getType(),
+                         'parenttype'       => static::$itemtype,
+                         static::$items_id  => $tID,
+                         'id'               => -1,
+                        'help_valid'        => 1];
+         } else {
+            $params = ['type'             => $this->getType(),
                          'parenttype'       => static::$itemtype,
                          static::$items_id  => $tID,
                          'id'               => -1];
+         }
          Ajax::updateItemJsCode("viewvalidation" . $tID . "$rand",
                                 $CFG_GLPI["root_doc"]."/ajax/viewsubitem.php",
                                 $params);
+         echo "if(document.getElementById('help_valid_header') != null) {
+            document.getElementById('help_valid_header').textContent = 'Заполните выделенные поля и нажмите Добавить';
+         }";
          echo "};";
          echo "</script>\n";
       }
@@ -963,13 +979,17 @@ abstract class CommonITILValidation  extends CommonDBChild {
                 $this->fields[static::$items_id]."'>";
          echo getUserName($this->fields["users_id"]);
          echo "</td></tr>";
-
-         echo "<tr class='tab_bg_1'><td>".__('Approver')."</td>";
+         
+         if (isset($_REQUEST['help_valid'])) {
+            echo "<tr id='approver' class='tab_bg_1' style='background: LightSalmon;'><td>".__('Approver')."</td>";
+         } else {
+            echo "<tr class='tab_bg_1'><td>".__('Approver')."</td>";
+         }
          echo "<td>";
 
          if ($ID > 0) {
             echo getUserName($this->fields["users_id_validate"]);
-            echo "<input type='hidden' name='users_id_validate' value='".
+            echo "<input type='hidden' name='users_id_validate' onchange='document.getElementById('approver').style.background = \"#90EE90\"' value='".
                    $this->fields['users_id_validate']."'>";
          } else {
             $users_id_validate  = [];
@@ -980,10 +1000,13 @@ abstract class CommonITILValidation  extends CommonDBChild {
             self::dropdownValidator($params);
          }
          echo "</td></tr>";
-
-         echo "<tr class='tab_bg_1'>";
+         if (isset($_REQUEST['help_valid'])) {
+            echo "<tr id='comment' class='tab_bg_1' style='background: LightSalmon;'>";
+         } else {
+            echo "<tr class='tab_bg_1'>";
+         }
          echo "<td>".__('Comments')."</td>";
-         echo "<td><textarea cols='60' rows='3' name='comment_submission'>".
+         echo "<td><textarea cols='60' rows='3' name='comment_submission' onchange='document.getElementById(\"comment\").style.background = \"#90EE90\"'>".
                $this->fields["comment_submission"]."</textarea></td></tr>";
 
       } else {
@@ -1368,7 +1391,7 @@ abstract class CommonITILValidation  extends CommonDBChild {
                                     $CFG_GLPI["root_doc"]."/ajax/dropdownValidator.php", $params);
 
       if (!isset($options['applyto'])) {
-         echo "<br><span id='".$params['applyto']."'>&nbsp;</span>\n";
+         echo "<br><span id='".$params['applyto']."' onchange='document.getElementById(\"approver\").style.background = \"#90EE90\"'>&nbsp;</span>\n";
       }
    }
 

@@ -1,5 +1,8 @@
 # GLPI changes
 
+## [9.4.5.200] 2020-09-09
+-Добавлен интерфейс помощи при создании заявки и при создании запроса на согласование в заявке + цветовая индикация подсказок
+
 The present file will list all changes made to the project; according to the
 [Keep a Changelog](http://keepachangelog.com/) project.
 

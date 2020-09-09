@@ -3816,7 +3816,7 @@ class Ticket extends CommonITILObject {
       }
 
       if (!$ticket_template) {
-         echo "<form method='post' name='helpdeskform' action='".
+         echo "<form id='testform' method='post' name='helpdeskform' action='".
                $CFG_GLPI["root_doc"]."/front/tracking.injector.php' enctype='multipart/form-data'>";
       }
 
@@ -3970,9 +3970,20 @@ class Ticket extends CommonITILObject {
 
       Plugin::doHook("pre_item_form", ['item' => $this, 'options' => &$options]);
 
+      if (isset($_REQUEST['help'])) {
+         echo "<input id='help' type='hidden' name='help' value='".$_REQUEST['help']."'>"; 
+      }
+
+      self::changeColor();
+
       echo "<tr><th>".__('Describe the incident or request')."</th><th>";
       if (Session::isMultiEntitiesMode()) {
          echo "(".Dropdown::getDropdownName("glpi_entities", $_SESSION["glpiactive_entity"]).")";
+      }
+      if (isset($_REQUEST['help'])) {
+         echo "<span class='count' style='background: LightSalmon;'>Заполните выделенные поля и нажмите Отправить сообщение!</span>";
+      } else {
+         echo "<span class='primary-bg primary-fg count'><a href='/front/helpdesk.public.php?create_ticket=1&help=1000' style='color: white'>Помощь в создании заявки!</a></span>";
       }
       echo "</th></tr>";
 
@@ -3984,9 +3995,16 @@ class Ticket extends CommonITILObject {
       echo "</td></tr>";
 
       echo "<tr class='tab_bg_1'>";
-      echo "<td>".sprintf(__('%1$s%2$s'), __('Category'),
-                          $tt->getMandatoryMark('itilcategories_id'))."</td>";
-      echo "<td>";
+      $back_color = $options['itilcategories_id']?'LightGreen':'LightSalmon';
+      if (isset($_REQUEST['help'])) {
+         echo "<td style='background: ".$back_color.";'>".sprintf(__('%1$s%2$s'), "Выберите нужную категорию",
+                           $tt->getMandatoryMark('itilcategories_id'))."</td>";
+         echo "<td style='background: ".$back_color.";'>";
+      } else {
+         echo "<td>".sprintf(__('%1$s%2$s'), __('Category'),
+                           $tt->getMandatoryMark('itilcategories_id'))."</td>";
+         echo "<td>";
+      }
 
       $condition = ['is_helpdeskvisible' => 1];
       switch ($options['type']) {
@@ -4000,7 +4018,7 @@ class Ticket extends CommonITILObject {
               'condition' => $condition,
               'entity'    => $_SESSION["glpiactive_entity"],
               'on_change' => 'this.form.submit()'];
-
+      
       if ($options['itilcategories_id'] && $tt->isMandatoryField("itilcategories_id")) {
          $opt['display_emptychoice'] = false;
       }
@@ -4010,11 +4028,20 @@ class Ticket extends CommonITILObject {
 
       if ($CFG_GLPI['urgency_mask'] != (1<<3)) {
          if (!$tt->isHiddenField('urgency')) {
-            echo "<tr class='tab_bg_1'>";
-            echo "<td>".sprintf(__('%1$s%2$s'), __('Urgency'), $tt->getMandatoryMark('urgency')).
+            if (isset($_REQUEST['help'])) {
+               $back_color = substr($_REQUEST['help'], 1, 1) ? 'LightGreen' : 'LightSalmon';
+               echo "<tr id='urgency' class='tab_bg_1' style='background: ".$back_color.";'>";
+               echo "<td>".sprintf(__('%1$s%2$s'), "Установите срочность (по умолчанию - средняя)", $tt->getMandatoryMark('urgency')).
+                  "</td>";
+               echo "<td>";
+               self::dropdownUrgency(['value' => $options["urgency"], 'on_change' => 'urgencyChange()']);
+            } else {
+               echo "<tr id='urgency' class='tab_bg_1'>";
+               echo "<td>".sprintf(__('%1$s%2$s'), __('Urgency'), $tt->getMandatoryMark('urgency')).
                  "</td>";
-            echo "<td>";
-            self::dropdownUrgency(['value' => $options["urgency"]]);
+               echo "<td>";
+               self::dropdownUrgency(['value' => $options["urgency"]]);
+            }
             echo "</td></tr>";
          }
       }
@@ -4102,8 +4129,15 @@ class Ticket extends CommonITILObject {
 
       if (!$tt->isHiddenField('name')
           || $tt->isPredefinedField('name')) {
-         echo "<tr class='tab_bg_1'>";
-         echo "<td>".sprintf(__('%1$s%2$s'), __('Title'), $tt->getMandatoryMark('name'))."<td>";
+         if (isset($_REQUEST['help'])) {
+            $back_color = substr($_REQUEST['help'], 2, 1) ? 'LightGreen' : 'LightSalmon';
+            echo "<tr id='name' class='tab_bg_1' style='background: ".$back_color.";'>";
+            echo "<td>".sprintf(__('%1$s%2$s'), "Краткий заголовок", $tt->getMandatoryMark('name'))."</td>";
+            echo "<td>";
+         } else {
+            echo "<tr id='name' class='tab_bg_1'>";
+            echo "<td>".sprintf(__('%1$s%2$s'), __('Title'), $tt->getMandatoryMark('name'))."<td>";
+         }
          if (!$tt->isHiddenField('name')) {
             $opt = [
                 'value'     => $options['name'],
@@ -4114,6 +4148,11 @@ class Ticket extends CommonITILObject {
             if ($tt->isMandatoryField('name')) {
                 $opt['required'] = 'required';
             }
+
+            if (isset($_REQUEST['help'])) {
+               $opt['onchange'] = 'nameChange()';
+            }
+
             echo Html::input('name', $opt);
          } else {
             echo $options['name'];
@@ -4124,8 +4163,14 @@ class Ticket extends CommonITILObject {
 
       if (!$tt->isHiddenField('content')
           || $tt->isPredefinedField('content')) {
-         echo "<tr class='tab_bg_1'>";
-         echo "<td>".sprintf(__('%1$s%2$s'), __('Description'), $tt->getMandatoryMark('content'));
+         if (isset($_REQUEST['help'])) {
+            $back_color = substr($_REQUEST['help'], 3, 1) ? 'LightGreen' : 'LightSalmon';
+            echo "<tr id='content' class='tab_bg_1' style='background: ".$back_color.";'>";
+            echo "<td>".sprintf(__('%1$s%2$s'), "Добавьте необходимые подробности по заявке", $tt->getMandatoryMark('name'))."</td>";
+         } else {
+            echo "<trclass='tab_bg_1'>";
+            echo "<td>".sprintf(__('%1$s%2$s'), __('Description'), $tt->getMandatoryMark('content'));
+         }
 
          $rand       = mt_rand();
          $rand_text  = mt_rand();
@@ -4133,6 +4178,7 @@ class Ticket extends CommonITILObject {
          $cols       = 100;
          $rows       = 10;
          $content_id = "content$rand";
+         
          echo "<td class='center middle'>";
 
          $content = $options['content'];
@@ -4154,6 +4200,7 @@ class Ticket extends CommonITILObject {
 
          echo "</td></tr>";
       }
+
       Plugin::doHook("post_item_form", ['item' => $this, 'options' => &$options]);
 
       if (!$ticket_template) {
@@ -4677,8 +4724,16 @@ class Ticket extends CommonITILObject {
             }
          }
       }
+
+      if (isset($_REQUEST['help'])) {
+         echo "<input id='help' type='hidden' name='help' value='".$_REQUEST['help']."'>"; 
+      }
+
+      self::changeColor();
+
       echo "<div class='spaced' id='tabsbody'>";
 
+      
       echo "<table class='tab_cadre_fixe' id='mainformtable'>";
 
       // Optional line
@@ -4699,7 +4754,11 @@ class Ticket extends CommonITILObject {
             printf(__('The ticket will be added in the entity %s'),
                    Dropdown::getDropdownName("glpi_entities", $this->fields['entities_id']));
          } else {
-            echo __('New ticket');
+            if (isset($_REQUEST['help'])) {
+               echo "<span>".__('New ticket')."</span><span class='count' style='background: LightSalmon;'>Заполните выделенные поля и нажмите Добавить!</span>";
+            } else {
+               echo "<span>".__('New ticket')."</span><span class='primary-bg primary-fg count'><a href='/front/ticket.form.php?help=1000' style='color: white'>Помощь в создании заявки!</a></span>";
+            }
          }
       }
       echo "</th></tr>";
@@ -4874,9 +4933,16 @@ class Ticket extends CommonITILObject {
          echo self::getTicketTypeName($this->fields["type"]);
       }
       echo "</td>";
-      echo "<th width='$colsize3%'>".sprintf(__('%1$s%2$s'), __('Category'),
+      if (isset($_REQUEST['help'])) {
+         $back_color = $options['itilcategories_id']?'LightGreen':'LightSalmon';
+         echo "<th width='$colsize3%' style='background: ".$back_color.";'>".sprintf(__('%1$s%2$s'), "Выберите нужную категорию",
                                              $tt->getMandatoryMark('itilcategories_id'))."</th>";
-      echo "<td width='$colsize4%'>";
+         echo "<td width='$colsize4%' style='background: ".$back_color.";'>";
+      } else {
+         echo "<th width='$colsize3%'>".sprintf(__('%1$s%2$s'), __('Category'),
+                                             $tt->getMandatoryMark('itilcategories_id'))."</th>";
+         echo "<td width='$colsize4%'>";
+      }
       // Permit to set category when creating ticket without update right
       if ($canupdate || $can_requester) {
          $conditions = [];
@@ -5072,16 +5138,30 @@ class Ticket extends CommonITILObject {
       echo "</tr>";
 
       echo "<tr class='tab_bg_1'>";
-      echo "<th>".$tt->getBeginHiddenFieldText('priority');
-      printf(__('%1$s%2$s'), __('Priority'), $tt->getMandatoryMark('priority'));
-      echo $tt->getEndHiddenFieldText('priority')."</th>";
-      echo "<td>";
+      if (isset($_REQUEST['help'])) {
+         $back_color = substr($_REQUEST['help'], 1, 1) ? 'LightGreen' : 'LightSalmon';
+         echo "<th id='priority_h' style='background: ".$back_color.";'>".$tt->getBeginHiddenFieldText('priority');
+         printf(__('%1$s%2$s'), "Установите приоритет (срочность) или оставьте средним", $tt->getMandatoryMark('priority'));
+         echo $tt->getEndHiddenFieldText('priority')."</th>";
+         echo "<td id='priority_d' style='background: ".$back_color.";'>";
+      } else {
+         echo "<th>".$tt->getBeginHiddenFieldText('priority');
+         printf(__('%1$s%2$s'), __('Priority'), $tt->getMandatoryMark('priority'));
+         echo $tt->getEndHiddenFieldText('priority')."</th>";
+         echo "<td>";
+      }
       $idajax = 'change_priority_' . mt_rand();
 
       if ($canpriority
           && !$tt->isHiddenField('priority')) {
-         $idpriority = parent::dropdownPriority(['value'     => $this->fields["priority"],
+         if (isset($_REQUEST['help'])) {
+            $idpriority = parent::dropdownPriority(['value'     => $this->fields["priority"],
+                                                      'withmajor' => true,
+                                                      'on_change' => 'priorityChange()']);
+         } else {
+            $idpriority = parent::dropdownPriority(['value'     => $this->fields["priority"],
                                                       'withmajor' => true]);
+         }
          $idpriority = 'dropdown_priority'.$idpriority;
          echo "&nbsp;<span id='$idajax' style='display:none'></span>";
 
@@ -5147,14 +5227,23 @@ class Ticket extends CommonITILObject {
 
       echo "<table class='tab_cadre_fixe' id='mainformtable4'>";
       echo "<tr class='tab_bg_1'>";
-      echo "<th style='width:$colsize1%'>".$tt->getBeginHiddenFieldText('name');
-      printf(__('%1$s%2$s'), __('Title'), $tt->getMandatoryMark('name'));
-      echo $tt->getEndHiddenFieldText('name')."</th>";
-      echo "<td colspan='3'>";
+      if (isset($_REQUEST['help'])) {
+         $back_color = substr($_REQUEST['help'], 2, 1) ? 'LightGreen' : 'LightSalmon';
+         echo "<th id='name_h' style='width:$colsize1%; background: ".$back_color.";'>".$tt->getBeginHiddenFieldText('name');
+         printf(__('%1$s%2$s'), "Краткий заголовок", $tt->getMandatoryMark('name'));
+         echo $tt->getEndHiddenFieldText('name')."</th>";
+         echo "<td id='name_d' colspan='3' style='background: ".$back_color.";'>";
+      } else {
+         echo "<th style='width:$colsize1%;'>".$tt->getBeginHiddenFieldText('name');
+         printf(__('%1$s%2$s'), __('Title'), $tt->getMandatoryMark('name'));
+         echo $tt->getEndHiddenFieldText('name')."</th>";
+         echo "<td colspan='3'>";
+      }
       if ($canupdate || $can_requester) {
          echo $tt->getBeginHiddenFieldValue('name');
+         $onchange = isset($_REQUEST['help']) ? "onchange='nameChange()'" : "";
          echo "<input type='text' style='width:98%' maxlength=250 name='name' ".
-                ($tt->isMandatoryField('name') ? " required='required'" : '') .
+                ($tt->isMandatoryField('name') ? " required='required'" : '') .$onchange.
                 " value=\"".Html::cleanInputText($this->fields["name"])."\">";
          echo $tt->getEndHiddenFieldValue('name', $this);
       } else {
@@ -5168,14 +5257,25 @@ class Ticket extends CommonITILObject {
       echo "</tr>";
 
       echo "<tr class='tab_bg_1'>";
-      echo "<th style='width:$colsize1%'>".$tt->getBeginHiddenFieldText('content');
-      printf(__('%1$s%2$s'), __('Description'), $tt->getMandatoryMark('content'));
+      if (isset($_REQUEST['help'])) {
+         $back_color = substr($_REQUEST['help'], 3, 1) ? 'LightGreen' : 'LightSalmon';
+         echo "<th id='content_h' style='width:$colsize1%; background: ".$back_color.";'>".$tt->getBeginHiddenFieldText('content');
+         printf(__('%1$s%2$s'), "Добавьте необходимые подробности по заявке (телефон, имя компьютера, № кабинета и т.д.)", $tt->getMandatoryMark('content'));   
+      } else {
+         echo "<th style='width:$colsize1%;'>".$tt->getBeginHiddenFieldText('content');
+         printf(__('%1$s%2$s'), __('Description'), $tt->getMandatoryMark('content'));
+      }
       if ($canupdate || $can_requester) {
          $content = Toolbox::unclean_cross_side_scripting_deep(Html::entity_decode_deep($this->fields['content']));
          Html::showTooltip(nl2br(Html::Clean($content)));
       }
       echo $tt->getEndHiddenFieldText('content')."</th>";
-      echo "<td colspan='3'>";
+      if (isset($_REQUEST['help'])) {
+         $back_color = substr($_REQUEST['help'], 3, 1) ? 'LightGreen' : 'LightSalmon';
+         echo "<td id='content_d' colspan='3' style='background: ".$back_color.";'>";
+      } else {
+         echo "<td colspan='3'>";
+      }
 
       echo $tt->getBeginHiddenFieldValue('content');
       $rand       = mt_rand();
@@ -7168,5 +7268,55 @@ class Ticket extends CommonITILObject {
       }
 
       return $condition;
+   }
+
+   /**
+    * Изменение цвета фона при изменении значений полей и сохранение цвета при перезагрузке страницы по submit
+    */
+   static function changeColor() {
+      echo "<script>
+      String.prototype.replaceAt = function(index, replacement) {
+         return this.substr(0, index) + replacement + this.substr(index + replacement.length);
+      }
+      
+      function urgencyChange() {
+         var help_val = document.getElementById('help').value;
+         document.getElementById('help').value = help_val.replaceAt(1, '1');
+         document.getElementById('urgency').style.background = '#90EE90';
+      }
+
+      function priorityChange() {
+         var help_val = document.getElementById('help').value;
+         document.getElementById('help').value = help_val.replaceAt(1, '1');
+         document.getElementById('priority_h').style.background = '#90EE90';
+         document.getElementById('priority_d').style.background = '#90EE90';
+      }  
+
+      function nameChange() {
+         var help_val = document.getElementById('help').value;
+         document.getElementById('help').value = help_val.replaceAt(2, '1');
+         if(document.getElementById('name') != null) {
+            document.getElementById('name').style.background = '#90EE90';
+         }
+         if(document.getElementById('name_h') != null) {
+            document.getElementById('name_h').style.background = '#90EE90';
+            document.getElementById('name_d').style.background = '#90EE90';
+         }
+      }
+
+      function contentChange() {
+         if(document.getElementById('help') != null) {
+            var help_val = document.getElementById('help').value;
+            document.getElementById('help').value = help_val.replaceAt(3, '1');
+            if(document.getElementById('content') != null) {
+               document.getElementById('content').style.background = '#90EE90';
+            }
+            if(document.getElementById('content_h') != null) {
+               document.getElementById('content_h').style.background = '#90EE90';
+               document.getElementById('content_d').style.background = '#90EE90';
+            }
+         }
+      }
+      </script>";
    }
 }

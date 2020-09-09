@@ -3615,6 +3615,7 @@ class Html {
                      } else {
                         $('.mce-edit-area').removeClass('required');
                      }
+                     contentChange();
                   });
                   editor.on('init', function (e) {
                      if ($('#$name').val() == '') {
@@ -3624,6 +3625,10 @@ class Html {
                }
                editor.on('SaveContent', function (contentEvent) {
                   contentEvent.content = contentEvent.content.replace(/\\r?\\n/g, '');
+               });
+
+               editor.on('change', function(e) {
+                  contentChange();
                });
 
                // ctrl + enter submit the parent form
