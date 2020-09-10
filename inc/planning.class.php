@@ -558,7 +558,7 @@ class Planning extends CommonGLPI {
       $rand='';
       if ($fullview) {
          Planning::showPlanningFilter();
-         $default_view = "agendaWeek";
+         $default_view = "month";
          $header = "{
             left:   'prev,next,today',
             center: 'title',
