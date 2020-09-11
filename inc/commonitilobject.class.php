@@ -6399,44 +6399,48 @@ abstract class CommonITILObject extends CommonDBTM {
          foreach ($validations as $validations_id => $validation) {
             $canedit = $valitation_obj->can($validations_id, UPDATE);
             $user->getFromDB($validation['users_id_validate']);
-    	    $ticket_status = $DB->result($DB->query("SELECT status FROM glpi_tickets WHERE id=".$this->getID()),0,'status');
-    	    $validator = $DB->result($DB->query("SELECT status FROM glpi_tickets WHERE id=".$this->getID()),0,'users_id_validate');
-    	    if($validation['status'] == 2 && $ticket_status != 5 && $ticket_status != 6 && $validation['users_id_validate'] == Session::getLoginUserID()) { // 2 - WAITING - статус В ожидании согласования
-        	$content_valid = "<table><tr><td>".__('Validation request')." => ".$user->getlink().
-                                                       "<br>".$validation['comment_submission']."</td></tr>".
-        	"<tr><td class='center'>".
-        	"<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
-        	"<input type='hidden' name='entities_id' value='0'>".
-        	"<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
-        	"<input type='hidden' name='users_id_validate' value='".$validation['users_id_validate']."'>".
-        	"<input type='hidden' name='id' value='".$validation['id']."'>".
-        	"<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
-        	"<input type='hidden' name='status' value='3'>".
-		"<input type='hidden' name='comment_validation' value=''>".
-        	"<input type='submit' value='Согласовать' name='update' class='submit' style='background-color: green; color: white;'></form></td>".
-        	"<td class='center'>".
-        	"<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
-        	"<input type='hidden' name='entities_id' value='0'>".
-        	"<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
-        	"<input type='hidden' name='users_id_validate' value='".$validation['users_id_validate']."'>".
-        	"<input type='hidden' name='id' value='".$validation['id']."'>".
-        	"<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
-        	"<input type='hidden' name='status' value='4'>".
-        	"<input type='hidden' name='comment_validation' value='-----'>".
-        	"<input type='submit' value='Отклонить' name='update' class='submit' style='background-color: red; color: white;'></form></td>".
-        	"</tr></table>";
-    	    } else {
-        	$content_valid = "<table><tr><td>".__('Validation request')." => ".$user->getlink().
-                                                       "<br>".$validation['comment_submission']."</td></tr>";
-    	    }
+            $ticket_status = $DB->result($DB->query("SELECT status FROM glpi_tickets WHERE id=".$this->getID()),0,'status');
+            $validator = $DB->result($DB->query("SELECT status FROM glpi_tickets WHERE id=".$this->getID()),0,'users_id_validate');
+            if($validation['status'] == 2 && 
+                  $ticket_status != 5 && 
+                  $ticket_status != 6 && 
+                  $validation['users_id_validate'] == Session::getLoginUserID()) { // 2 - WAITING - статус В ожидании согласования
+               $control ="<b>Комментарий или причина отклонения:</b><br>".
+               "<textarea id='test' width='100%' rows='3' name='comment_validation' 
+                  oninput='{document.getElementById(\"comment_validation_accept\").value = document.getElementById(\"test\").value;
+                           document.getElementById(\"comment_validation_decline\").value = document.getElementById(\"test\").value;}'></textarea><br>".
+               "<table width='100%'><tr><td class='right'>".
+               "<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
+               "<input type='hidden' name='entities_id' value='0'>".
+               "<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
+               "<input type='hidden' name='users_id_validate' value='".$validation['users_id_validate']."'>".
+               "<input type='hidden' name='id' value='".$validation['id']."'>".
+               "<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
+               "<input type='hidden' name='status' value='3'>".
+               "<input id='comment_validation_accept' type='hidden' name='comment_validation' value=''>".
+               "<input type='submit' value='Согласовать' name='update' class='submit' style='width: 90px; background-color: green; color: white;'></form></td>".
+               "<td>".
+               "<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
+               "<input type='hidden' name='entities_id' value='0'>".
+               "<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
+               "<input type='hidden' name='users_id_validate' value='".$validation['users_id_validate']."'>".
+               "<input type='hidden' name='id' value='".$validation['id']."'>".
+               "<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
+               "<input type='hidden' name='status' value='4'>".
+               "<input id='comment_validation_decline' type='hidden' name='comment_validation' value=''>".
+               "<input type='submit' value='Отклонить' name='update' class='submit' style='width: 90px; background-color: red; color: white;'></form></td>".
+               "</tr></table>";
+            } else {
+               $control = "";
+            }
             $timeline[$validation['submission_date']."_validation_".$validations_id] = [
                'type' => $validationClass,
                'item' => [
                   'id'        => $validations_id,
                   'date'      => $validation['submission_date'],
-//                  'content'   => __('Validation request')." => ".$user->getlink().
-//                                                 "<br>".$validation['comment_submission'],
-	       'content'   => $content_valid,
+                  'content'   => __('Validation request')." => ".$user->getlink().
+                                                 "<br>".$validation['comment_submission'],
+                  'control'   => $control,
                   'users_id'  => $validation['users_id'],
                   'can_edit'  => $canedit,
                   'timeline_position' => $validation['timeline_position']
@@ -6444,33 +6448,31 @@ abstract class CommonITILObject extends CommonDBTM {
                'itiltype' => 'Validation'
             ];
 // 3 и 4 - коды статусов соответственно для Согласовано и Отклонено
-	    if(($validation['status'] == 3 || $validation['status'] == 4) && $ticket_status != 5 && $ticket_status != 6 && $validation['users_id_validate'] == Session::getLoginUserID()) { // 2 - WAITING - статус В ожидании соглас
-    		$content_valid = "<table><tr><td>".__('Validation request answer')." : ". _sx('status',
-                                                 ucfirst($validationClass::getStatus($validation['status'])))
-                                                   ."<br>".$validation['comment_validation']."</td></tr>".
-    		"<tr><td class='center'>".
-    		"<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
-    		"<input type='hidden' name='entities_id' value='0'>".
-    		"<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
-    		"<input type='hidden' name='users_id_validate' value='".$validation['users_id_validate']."'>".
-    		"<input type='hidden' name='id' value='".$validation['id']."'>".
-    		"<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
-    		"<input type='hidden' name='status' value='2'>".
-		"<input type='hidden' name='comment_validation' value=''>".
-    		"<input type='submit' value='Отменить' name='update' class='submit' style='submit'></form></td>".
-		"</tr></table>";
-	    } else {
-		$content_valid = __('Validation request answer')." : ". _sx('status',
-                                                 ucfirst($validationClass::getStatus($validation['status'])))
-                                                   ."<br>".$validation['comment_validation'];
-	    }
+         if(($validation['status'] == 3 || $validation['status'] == 4) && $ticket_status != 5 && $ticket_status != 6 && $validation['users_id_validate'] == Session::getLoginUserID()) { // 2 - WAITING - статус В ожидании соглас
+            $control = "<table width='100%''><tr><td class='center'>".
+            "<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
+            "<input type='hidden' name='entities_id' value='0'>".
+            "<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
+            "<input type='hidden' name='users_id_validate' value='".$validation['users_id_validate']."'>".
+            "<input type='hidden' name='id' value='".$validation['id']."'>".
+            "<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
+            "<input type='hidden' name='status' value='2'>".
+            "<input type='hidden' name='comment_validation' value=''>".
+            "<input type='submit' value='Отменить' name='update' class='submit'></form></td>".
+            "</tr></table>";
+         } else {
+            $control = "";
+         }
             if (!empty($validation['validation_date'])) {
                $timeline[$validation['validation_date']."_validation_".$validations_id] = [
                   'type' => $validationClass,
                   'item' => [
                      'id'        => $validations_id,
                      'date'      => $validation['validation_date'],
-                     'content'   => $content_valid,
+                     'content'   => __('Validation request answer')." : ". _sx('status',
+                                                 ucfirst($validationClass::getStatus($validation['status'])))
+                                                   ."<br>".$validation['comment_validation'],
+                     'control'   => $control,
                      'users_id'  => $validation['users_id_validate'],
                      'status'    => "status_".$validation['status'],
                      'can_edit'  => $canedit,
@@ -6713,6 +6715,10 @@ abstract class CommonITILObject extends CommonDBTM {
 
             echo "<div class='rich_text_container'>";
             echo Html::setRichTextContent('', $content, '', true);
+            // вывод блока управления событием timeline
+            if (isset($item_i['control'])) {
+               echo $item_i['control'];
+            }
             echo "</div>";
 
             if (!empty($long_text)) {

@@ -739,35 +739,41 @@ abstract class CommonITILValidation  extends CommonDBChild {
              'ORDER'  => 'submission_date DESC'
       ]);
       if (count($iterator) > 0) {
-	 while($validation = $iterator->next()) {
-	    $ticket_status = $DB->result($DB->query("SELECT status FROM glpi_tickets WHERE id=".$validation['tickets_id']),0,'status');
-	    if($validation['status'] == 2 && $ticket_status != 5 && $ticket_status != 6) { // 2 - WAITING - статус В ожидании согласования
-		$content_valid = "<table class='tab_cadre_fixe'><tr><td style='font-weight: bold'>Запрос на согласование => ".getUserName(Session::getLoginUserID())."</td>".
-		"<td>".
-		"<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
-		"<input type='hidden' name='entities_id' value='0'>".
-		"<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
-		"<input type='hidden' name='users_id_validate' value='".$validation['users_id_validate']."'>".
-		"<input type='hidden' name='id' value='".$validation['id']."'>".
-		"<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
-		"<input type='hidden' name='status' value='3'>".
-		"<input type='hidden' name='comment_validation' value=''>".
-		"<input type='submit' value='Согласовать' name='update' class='submit' style='background-color: green; color: white;'></form></td>".
-		"<td>".
-		"<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
-		"<input type='hidden' name='entities_id' value='0'>".
-		"<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
-		"<input type='hidden' name='users_id_validate' value='".$validation['users_id_validate']."'>".
-		"<input type='hidden' name='id' value='".$validation['id']."'>".
-		"<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
-		"<input type='hidden' name='status' value='4'>".
-		"<input type='hidden' name='comment_validation' value='-----'>".
-		"<input type='submit' value='Отклонить' name='update' class='submit' style='background-color: red; color: white;'></form></td>".
-		"</tr></table>";
-	    }
-	 }
+	      while($validation = $iterator->next()) {
+            $ticket_status = $DB->result($DB->query("SELECT status FROM glpi_tickets WHERE id=".$validation['tickets_id']),0,'status');
+            if($validation['status'] == 2 && $ticket_status != 5 && $ticket_status != 6) { // 2 - WAITING - статус В ожидании согласования
+               $control = "<table class='tab_cadre_fixe'><tr><td style='font-weight: bold'>Запрос на согласование => ".getUserName(Session::getLoginUserID())."</td>".
+               "<td class='timeline_box'>".
+               "<div style='font-weight: bold' align='center'>Комментарий или причина отклонения:</div><br>".
+               "<textarea id='test' width='100%' rows='3' name='comment_validation' 
+                  oninput='{document.getElementById(\"comment_validation_accept\").value = document.getElementById(\"test\").value;
+                           document.getElementById(\"comment_validation_decline\").value = document.getElementById(\"test\").value;}'></textarea><br>".
+               "<table width='100%'><tr><td class='right'>".
+               "<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
+               "<input type='hidden' name='entities_id' value='0'>".
+               "<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
+               "<input type='hidden' name='users_id_validate' value='".$validation['users_id_validate']."'>".
+               "<input type='hidden' name='id' value='".$validation['id']."'>".
+               "<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
+               "<input type='hidden' name='status' value='3'>".
+               "<input id='comment_validation_accept' type='hidden' name='comment_validation' value=''>".
+               "<input type='submit' value='Согласовать' name='update' class='submit' style='width: 90px; background-color: green; color: white;'></form></td>".
+               "<td>".
+               "<form method='post' action='/front/ticketvalidation.form.php' enctype='multipart/form-data'>".
+               "<input type='hidden' name='entities_id' value='0'>".
+               "<input type='hidden' name='tickets_id' value='".$validation['tickets_id']."'>".
+               "<input type='hidden' name='users_id_validate' value='".$validation['users_id_validate']."'>".
+               "<input type='hidden' name='id' value='".$validation['id']."'>".
+               "<input type='hidden' name='_glpi_csrf_token' value='".Session::getNewCSRFToken()."'>".
+               "<input type='hidden' name='status' value='4'>".
+               "<input id='comment_validation_decline' type='hidden' name='comment_validation' value=''>".
+               "<input type='submit' value='Отклонить' name='update' class='submit' style='width: 90px; background-color: red; color: white;'></form></td>".
+               "</tr></table></td>".
+               "</tr></table>";
+	         }
+	      }
       }
-      echo $content_valid;
+      echo $control;
 
       if ($canadd) {
          $itemtype = static::$itemtype;
@@ -1002,12 +1008,15 @@ abstract class CommonITILValidation  extends CommonDBChild {
          echo "</td></tr>";
          if (isset($_REQUEST['help_valid'])) {
             echo "<tr id='comment' class='tab_bg_1' style='background: LightSalmon;'>";
+            echo "<td>".__('Comments')."</td>";
+            echo "<td><textarea cols='60' rows='3' name='comment_submission' onchange='document.getElementById(\"comment\").style.background = \"#90EE90\"'>".
+                  $this->fields["comment_submission"]."</textarea></td></tr>";   
          } else {
             echo "<tr class='tab_bg_1'>";
+            echo "<td>".__('Comments')."</td>";
+            echo "<td><textarea cols='60' rows='3' name='comment_submission'>".
+                  $this->fields["comment_submission"]."</textarea></td></tr>";
          }
-         echo "<td>".__('Comments')."</td>";
-         echo "<td><textarea cols='60' rows='3' name='comment_submission' onchange='document.getElementById(\"comment\").style.background = \"#90EE90\"'>".
-               $this->fields["comment_submission"]."</textarea></td></tr>";
 
       } else {
          echo "<tr class='tab_bg_1'>";
