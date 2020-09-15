@@ -1875,6 +1875,30 @@ JAVASCRIPT;
             $end = date('Y-m-d', strtotime($event['end']));
          }
 
+         // Устанавливаем цвет события: выполнено - зеленый, просрочено - красный
+         if(isset($event['state'])) {
+            if ($event['itemtype'] == 'ProjectTask') {
+               if ($event['state'] == '3') {
+                  $event['color'] = 'MediumSeaGreen';
+                  $event['textcolor'] = 'white';
+               } else {
+                  if (time() > strtotime($event['end'])) {
+                     $event['color'] = 'LightCoral';
+                     $event['textcolor'] = 'white';
+                  }
+               }
+            } else {
+               if ($event['state'] == '2') {
+                  $event['color'] = 'MediumSeaGreen';
+                  $event['textcolor'] = 'white';
+               } else {
+                  if (time() > strtotime($event['end'])) {
+                     $event['color'] = 'LightCoral';
+                     $event['textcolor'] = 'white';
+                  }
+               }
+            }
+         }
          $index_color = array_search("user_$users_id", array_keys($_SESSION['glpi_plannings']));
          $events[] = ['title'       => $event['name'],
                            'content'     => $content,
@@ -1888,7 +1912,9 @@ JAVASCRIPT;
                            'borderColor' => (empty($event['event_type_color'])?
                                              self::getPaletteColor('ev', $event['itemtype']):
                                              $event['event_type_color']),
-                           'textColor'   => Planning::$palette_fg[$index_color],
+                           'textColor'   => (empty($event['textcolor'])?
+                                             Planning::$palette_fg[$index_color]:
+                                             $event['textcolor']),
                            'typeColor'   => (empty($event['event_type_color'])?
                                              self::getPaletteColor('ev', $event['itemtype']):
                                              $event['event_type_color']),

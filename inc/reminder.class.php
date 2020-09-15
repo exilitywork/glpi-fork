@@ -916,12 +916,23 @@ class Reminder extends CommonDBVisible {
       }
       unset($visibility_criteria['WHERE']);
 
+      $user_list = '0';
+      $group_users = $DB->query("
+         SELECT DISTINCT `glpi_groups_users_2`.`users_id` AS `users_id`
+         FROM `glpi_groups_users`
+         LEFT JOIN `glpi_groups_users` `glpi_groups_users_2` 
+         ON `glpi_groups_users`.`groups_id` = `glpi_groups_users_2`.`groups_id`
+         WHERE `glpi_groups_users`.`users_id` = ".Session::getLoginUserID());
+      foreach($group_users as $group_user) {
+         $user_list .= ",".$group_user['users_id'];
+      }
+
       // See my private reminder ?
       if (($who_group === "mine") || ($who === Session::getLoginUserID())) {
          $nreadpriv = ['glpi_reminders.users_id' => Session::getLoginUserID()];
       } else {
          if ($who > 0) {
-            $nreadpriv = ['glpi_reminders.users_id' => $who];
+            $nreadpriv['OR'] = ['glpi_reminders.users_id' => $who, 'glpi_reminders_users.users_id' => $who];
          }
          if ($who_group > 0) {
             $ngrouppriv = ['glpi_groups_reminders.groups_id' => $who_group];
@@ -977,11 +988,11 @@ class Reminder extends CommonDBVisible {
       ] + $visibility_criteria;
 
       $iterator = $DB->request($criteria);
-
       if (count($iterator)) {
          while ($data = $iterator->next()) {
             if ($reminder->getFromDB($data["id"])
-                  && $reminder->canViewItem()) {
+                  && ($reminder->canViewItem()
+                  || in_array($reminder->fields['users_id'], explode(',', $user_list)))) {
                $key                               = $data["begin"]."$$"."Reminder"."$$".$data["id"];
                $interv[$key]['color']             = $options['color'];
                $interv[$key]['event_type_color']  = $options['event_type_color'];
@@ -1006,7 +1017,6 @@ class Reminder extends CommonDBVisible {
                                        $CFG_GLPI["cut"]);
 
                $interv[$key]["users_id"]   = $data["users_id"];
-               $interv[$key]["state"]      = $data["state"];
                $interv[$key]["state"]      = $data["state"];
                if (!$options['genical']) {
                   $interv[$key]["url"] = Reminder::getFormURLWithID($data['id']);
@@ -1090,6 +1100,7 @@ class Reminder extends CommonDBVisible {
       }
 
       if ($complete) {
+         $html.= "<br><span style='font: bold 11px Arial, Helvetica;'>c ".Html::convDateTime($val["begin"])."<br>по ".Html::convDateTime($val["end"])."</span><br>";
          $html.= "<span>".Planning::getState($val["state"])."</span><br>";
          $html.= "<div class='event-description rich_text_container'>".$val["text"].$recall."</div>";
       } else {
