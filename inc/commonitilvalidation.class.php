@@ -772,6 +772,8 @@ abstract class CommonITILValidation  extends CommonDBChild {
                "</tr></table>";
 	         }
 	      }
+      } else {
+         $control = "";
       }
       echo $control;
 
