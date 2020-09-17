@@ -86,7 +86,7 @@ class Html {
          $value,
          [
             'elements'         => ($striptags) ? 'none' : '',
-            'deny_attribute'   => 'on*',
+            //'deny_attribute'   => 'on*',
             'keep_bad'         => $keep_bad, // 1: neutralize tag and content, 2 : remove tag and neutralize content
             'comment'          => 1, // 1: remove
             'cdata'            => 1, // 1: remove
@@ -3615,7 +3615,6 @@ class Html {
                      } else {
                         $('.mce-edit-area').removeClass('required');
                      }
-                     contentChange();
                   });
                   editor.on('init', function (e) {
                      if ($('#$name').val() == '') {
@@ -3628,7 +3627,7 @@ class Html {
                });
 
                editor.on('change', function(e) {
-                  contentChange();
+                  ".(isset($_GET['help']) ? 'contentChange();' : '')."
                });
 
                // ctrl + enter submit the parent form

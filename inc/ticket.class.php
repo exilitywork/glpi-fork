@@ -4150,7 +4150,7 @@ class Ticket extends CommonITILObject {
             }
 
             if (isset($_REQUEST['help'])) {
-               $opt['onchange'] = 'nameChange()';
+               $opt['oninput'] = 'nameChange()';
             }
 
             echo Html::input('name', $opt);
@@ -5241,9 +5241,9 @@ class Ticket extends CommonITILObject {
       }
       if ($canupdate || $can_requester) {
          echo $tt->getBeginHiddenFieldValue('name');
-         $onchange = isset($_REQUEST['help']) ? "onchange='nameChange()'" : "";
+         $oninput = isset($_REQUEST['help']) ? "oninput='nameChange()'" : "";
          echo "<input type='text' style='width:98%' maxlength=250 name='name' ".
-                ($tt->isMandatoryField('name') ? " required='required'" : '') .$onchange.
+                ($tt->isMandatoryField('name') ? " required='required'" : '') .$oninput.
                 " value=\"".Html::cleanInputText($this->fields["name"])."\">";
          echo $tt->getEndHiddenFieldValue('name', $this);
       } else {
