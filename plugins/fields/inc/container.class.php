@@ -1128,14 +1128,21 @@ class PluginFieldsContainer extends CommonDBTM {
          $field['label'] = PluginFieldsLabelTranslation::getLabelFor($field);
 
          // Check mandatory fields
-         if ($field['mandatory'] == 1
+         if ($field['mandatory'] == 1 
              && ($value == ""
                  || in_array($field['type'], ['dropdown', 'dropdownuser'])
                  && $value == 0
                  || in_array($field['type'], ['date', 'datetime'])
                  && $value == 'NULL')) {
-            $empty_errors[] = $field['label'];
-            $valid = false;
+            if (!empty($field['tickettemplates_id'])) {
+               if($field['tickettemplates_id'] == $_REQUEST['_tickettemplates_id']) {
+                  $empty_errors[] = $field['label'];
+                  $valid = false;
+               }
+            } else {
+               $empty_errors[] = $field['label'];
+               $valid = false;
+            }
          } else if ($field['type'] == 'number' && !empty($value) && !is_numeric($value)) {
             // Check number fields
             $number_errors[] = $field['label'];

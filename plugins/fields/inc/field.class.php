@@ -34,6 +34,7 @@ class PluginFieldsField extends CommonDBTM {
                   `is_active`                         TINYINT(1)     NOT NULL DEFAULT '1',
                   `is_readonly`                       TINYINT(1)     NOT NULL DEFAULT '1',
                   `mandatory`                         TINYINT(1)     NOT NULL DEFAULT '0',
+                  `tickettemplates_id`                INT(11)        NOT NULL DEFAULT '0',
                   PRIMARY KEY                         (`id`),
                   KEY `plugin_fields_containers_id`   (`plugin_fields_containers_id`),
                   KEY `is_active`                     (`is_active`),
@@ -54,6 +55,9 @@ class PluginFieldsField extends CommonDBTM {
       }
       if (!$DB->fieldExists($table, 'mandatory')) {
          $migration->addField($table, 'mandatory', 'bool', ['value' => 0]);
+      }
+      if (!$DB->fieldExists($table, 'tickettemplates_id')) {
+         $migration->addField($table, 'tickettemplates_id', 'integer', ['value' => 0]);
       }
       $migration->executeMigration();
 
@@ -312,6 +316,7 @@ class PluginFieldsField extends CommonDBTM {
          echo "<th>".__("Mandatory field")    ."</th>";
          echo "<th>".__("Active")             ."</th>";
          echo "<th>".__("Read only", "fields")."</th>";
+         echo "<th>".__("Ticket template")    ."</th>";  
          echo "<th width='16'>&nbsp;</th>";
          echo "</tr>";
 
@@ -338,7 +343,13 @@ class PluginFieldsField extends CommonDBTM {
                echo "<td>";
                echo Dropdown::getYesNo($this->fields["is_readonly"]);
                echo "</td>";
-
+               echo "<td>";
+               if (!empty($this->fields['tickettemplates_id'])) {
+                  echo $DB->result($DB->query("SELECT glpi_tickettemplates.name AS name FROM glpi_tickettemplates WHERE glpi_tickettemplates.id =".$this->fields['tickettemplates_id']), 0, 'name');
+               } else {
+                  echo "---";
+               }
+               echo "</td>";
                echo '<td class="rowhandler control center">';
                echo '<div class="drag row" style="cursor:move;border:none !important;">';
                echo '<img src="../pics/drag.png" alt="#" title="'.__('Move').'" width="16" height="16">';
@@ -357,7 +368,7 @@ class PluginFieldsField extends CommonDBTM {
 
 
    function showForm($ID, $options = []) {
-      global $CFG_GLPI;
+      global $CFG_GLPI, $DB;
 
       if (isset($options['parent_id']) && !empty($options['parent_id'])) {
          $container = new PluginFieldsContainer;
@@ -428,6 +439,10 @@ class PluginFieldsField extends CommonDBTM {
       echo "<td>";
       Dropdown::showYesNo("is_readonly", $this->fields["is_readonly"]);
       echo "</td>";
+      echo "<td>".__("Ticket template")." :</td>";
+      echo "<td>";
+      TicketTemplate::dropdown(['value' => $this->fields["tickettemplates_id"]]);
+      echo "</td>";
       echo "</tr>";
 
       $this->showFormButtons($options);
@@ -479,7 +494,7 @@ class PluginFieldsField extends CommonDBTM {
     *
     * @return void
     */
-   static private function showDomContainer($c_id, $itemtype, $items_id, $type = "dom", $subtype = "") {
+   static private function showDomContainer($c_id, $itemtype, $items_id, $type = "dom", $subtype = "", $options = []) {
 
       if ($c_id !== false) {
          //get fields for this container
@@ -497,7 +512,7 @@ class PluginFieldsField extends CommonDBTM {
 
       echo Html::hidden('_plugin_fields_type', ['value' => $type]);
       echo Html::hidden('_plugin_fields_subtype', ['value' => $subtype]);
-      echo self::prepareHtmlFields($fields, $items_id, $itemtype);
+      echo self::prepareHtmlFields($fields, $items_id, $itemtype, true, true, false, $options);
    }
 
    /**
@@ -515,7 +530,7 @@ class PluginFieldsField extends CommonDBTM {
 
       $functions = array_column(debug_backtrace(), 'function');
 
-      if (!isset($_SESSION['glpi_tabs'][strtolower($item::getType())])) {
+      if (!(isset($_SESSION['glpi_tabs'][strtolower($item::getType())]) || in_array('showFormHelpdesk', $functions))) {
          return;
       };
 
@@ -546,11 +561,13 @@ class PluginFieldsField extends CommonDBTM {
          $entities = getSonsOf(getTableForItemType('Entity'), $loc_c->fields['entities_id']);
       }
 
-      $current_entity = $item::getType() == Entity::getType()
-                           ? $item->getID()
-                           : $item->fields['entities_id'];
-      if (!in_array($current_entity, $entities)) {
-         return false;
+      if(Session::getCurrentInterface() != "helpdesk") {
+         $current_entity = $item::getType() == Entity::getType()
+                              ? $item->getID()
+                              : $item->fields['entities_id'];
+         if (!in_array($current_entity, $entities)) {
+            return false;
+         }
       }
 
       //parse REQUEST_URI
@@ -577,12 +594,15 @@ class PluginFieldsField extends CommonDBTM {
          $item::getType(),
          $item->getID(),
          $type,
-         $subtype
+         $subtype,
+         $options
       );
    }
 
    static function prepareHtmlFields($fields, $items_id, $itemtype, $canedit = true,
-                                     $show_table = true, $massiveaction = false) {
+                                     $show_table = true, $massiveaction = false, $options = []) {
+
+      global $DB;
 
       if (empty($fields)) {
          return false;
@@ -640,7 +660,29 @@ class PluginFieldsField extends CommonDBTM {
       $html = "";
       $odd = 0;
       foreach ($fields as $field) {
-
+         if (!empty($field['tickettemplates_id'])) {
+            if (Session::getCurrentInterface() == "helpdesk") {
+               if (!empty($options['itilcategories_id'])) {
+                  $type = ($options['type'] == 1) ? "tickettemplates_id_incident" : "tickettemplates_id_demand";
+                  $options['_tickettemplates_id'] = $DB->result($DB->query("SELECT glpi_itilcategories.".$type." AS tt_id FROM glpi_itilcategories WHERE glpi_itilcategories.id =".$options['itilcategories_id']), 0, 'tt_id');
+               } else {
+                  $options['_tickettemplates_id'] = -1;
+                  $is_valid = 0;
+               }
+            } else {
+               $itemtype = isset($_GET['_itemtype']) ? $_GET['_itemtype'] : 0;
+               $tt_id = isset($_GET['_id']) ? $_GET['_id'] : 0;
+               if ($itemtype == "TicketTemplate") {
+                  $options['_tickettemplates_id'] = $tt_id;
+               } else {
+                  $options['_tickettemplates_id'] = $options['_tickettemplate']->getID();
+               }
+            }
+            $is_valid = ($field['tickettemplates_id'] == $options['_tickettemplates_id']) ? 1 : 0;
+         } else {
+            $is_valid = 1;
+         }
+         if ($is_valid){
          if ($field['type'] === 'header') {
             $html.= "<tr class='tab_bg_2'>";
             $field['itemtype'] = self::getType();
@@ -816,6 +858,7 @@ class PluginFieldsField extends CommonDBTM {
             }
          }
       }
+   }  
       if ($show_table && $odd%2 == 1) {
          $html.= "</tr>";
       }
