@@ -20,12 +20,16 @@ else {
     $data_fin = date("Y-m-d");
 }
 
-if(!isset($_POST["sel_grp"])) {
+if(isset($_REQUEST["sel_grp"])) {
     $id_grp = $_REQUEST["sel_grp"];
+} else {
+    $id_grp = '';
 }
 
-else {
-    $id_grp = $_POST["sel_grp"];
+if(!empty($_REQUEST["sel_field"])) {
+    $id_field = $_REQUEST["sel_field"];
+} else {
+    $id_field = '';
 }
 
 if(!empty($_GET["cat_grp"])) {
@@ -35,7 +39,6 @@ if(!empty($_GET["cat_grp"])) {
 if(!empty($_GET["req_grp"])) {
 	$id_req = $_GET["req_grp"];
 }
-
 
 # entity
 $sql_e = "SELECT value FROM glpi_plugin_dashboard_config WHERE name = 'entity' AND users_id = ".$_SESSION['glpiID']."";
@@ -134,7 +137,7 @@ else {
 	</div>
 	    <div id="datas-tec" class="span12 fluid" >
 	        <form id="form1" name="form1" class="form_rel" method="post" action="rel_grupo.php?con=1">
-		    <table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef" >
+		    <table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef" width="850">
 		       <tr>
 			    <td style="width: 310px;">
 			    <?php
@@ -180,9 +183,9 @@ else {
 			    ORDER BY `name` ASC";
 	
 			    $result_grp = $DB->query($sql_grp);
-			    $grp = $DB->fetch_assoc($result_grp);
+			    //$grp = $DB->fetch_assoc($result_grp);
 	
-			    $res_grp = $DB->query($sql_grp);
+			    //$res_grp = $DB->query($sql_grp);
 			    $arr_grp = array();
 			    $arr_grp[0] = "-- ". __('Select a group', 'dashboard') . " --" ;
 	
@@ -197,13 +200,67 @@ else {
 			    $options = $arr_grp;
 			    $selected = $id_grp;
 	
-			    echo dropdown( $name, $options, $selected );
+				echo dropdown( $name, $options, $selected );
+				
+				echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
 			    ?>
 			    </td>
 		    </tr>
 		    <tr><td height="15px"></td></tr>
+			<tr><td style="color: white">Добавить поле (необязательно):</td>
+				<td style="margin-top:2px;">
+				<?php
+				// список дополнительных полей
+				$sql_fields = "
+					SELECT id , label
+					FROM `glpi_plugin_fields_fields`
+					ORDER BY `name` ASC";
+
+				$result_fields = $DB->query($sql_fields);
+				$arr_fields = array();
+				$arr_fields[0] = "-- Выберите поле --" ;
+		
+				$DB->data_seek($result_fields, 0) ;
+		
+				while ($row_result = $DB->fetch_assoc($result_fields)){
+					$v_row_result = $row_result['id'];
+					$arr_fields[$v_row_result] = $row_result['label'] ." (". $row_result['id'] .")" ;
+				}
+		
+				$name = 'sel_field';
+				$options = $arr_fields;
+				$selected = $id_field;
+
+				echo dropdown( $name, $options, $selected );
+
+				echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
+				?>
+				</td>
+				<td style="width: 300px; padding-left: 15px; text-align: left;"> 
+					<input type="checkbox" name="field_sum" value="1"> <?php echo "Суммировать"; ?>
+				</td>
+			</tr>
+			<tr><td height="15px"></td></tr>
 		    <tr>
 			<td colspan="2" align="center">
+				<?php
+					if(isset($id_req)) {
+						echo "<input type='hidden' name='req_grp' value='".$id_req."'>";
+					}
+					if(isset($id_cat)) {
+						echo "<input type='hidden' name='cat_grp' value='".$id_cat."'>";
+					}
+					if(isset($_GET['cat_name'])) {
+						echo "<input type='hidden' name='cat_name' value='".$_GET['cat_name']."'>";
+					}
+					if(isset($_GET['req_name'])) {
+						echo "<input type='hidden' name='req_name' value='".$_GET['req_name']."'>";
+					}
+				?>
 			    <button class="btn btn-primary btn-sm" type="submit" name="submit" value="Atualizar" ><i class="fa fa-search"></i>&nbsp; <?php echo __('Consult','dashboard'); ?> </button>
 			    <button class="btn btn-primary btn-sm" type="button" name="Limpar" value="Limpar" onclick="location.href='<?php echo $url2 ?>'" ><i class="fa fa-trash-o"></i>&nbsp; <?php echo __('Clean','dashboard'); ?> </button>
 			</td>
@@ -405,7 +462,7 @@ if($conta_cons > 0) {
 }
 else { $barra = 0;}
 
-// nome do grupo
+// Получение имени группы
 $sql_nm = "
 SELECT id, name
 FROM `glpi_groups`
@@ -414,10 +471,29 @@ WHERE id = ".$id_grp." ";
 $result_nm = $DB->query($sql_nm);
 $grp_name = $DB->fetch_assoc($result_nm);
 
+// Получение названия доп. поля
+if (!empty($_REQUEST['sel_field'])) {
+	$sql_field_label = "
+		SELECT id, label, name, plugin_fields_containers_id
+		FROM `glpi_plugin_fields_fields`
+		WHERE id = ".$id_field." ";
+	$result_field_label = $DB->query($sql_field_label);
+	$field_label = $DB->fetch_assoc($result_field_label);
+	$field_name = $field_label['name'];
+
+	// Получение названия таблицы со значениями доп. поля
+	$sql_field_cont_name = "
+	SELECT name
+	FROM `glpi_plugin_fields_containers`
+	WHERE id = ".$field_label['plugin_fields_containers_id']." ";
+	$result_field_cont_name = $DB->query($sql_field_cont_name);
+	$field_cont_name = $DB->fetch_assoc($result_field_cont_name);
+	$field_table = "glpi_plugin_fields_ticket".$field_cont_name['name']."s";
+}
 
 //listar chamados
 echo "
-<div class='well info_box fluid col-md-12 report' style='margin-left: -1px;'>
+<div class='well info_box fluid col-md-12 report' style='margin-left: -1px; margin-top: -90px;'>
 
 <table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
 	<td  style='font-size: 16px; font-weight:bold; vertical-align:middle;'><span style='color:#000;'> ".__('Group', 'dashboard').": </span>".$grp_name['name']." </td>
@@ -433,6 +509,19 @@ echo "
 	</div>
 	</td>
 </table> ";
+
+// вывод суммы значений доп. полей
+if (isset($_REQUEST['field_sum'])) {
+	echo "
+	<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
+	<tr style='width: 450px;'>
+		<td></td>
+		<td style='vertical-align:middle;'> <span style='color: #000;'>".$field_label['label'].": </span><span id='field_sum'>"."</span></td>
+	</tr>
+	</table>";
+}
+
+// вывод названия категории
 if(isset($_GET['cat_name'])) {
 	echo "
 	<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
@@ -442,6 +531,8 @@ if(isset($_GET['cat_name'])) {
 	</tr>
 	</table>";
 }
+
+// вывод типа запроса
 if(isset($_GET['req_name'])) {
 	echo "
 	<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
@@ -481,18 +572,24 @@ echo "
     <thead>
 	<tr>
 	    <th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Tickets', 'dashboard')." </th>
-	    <th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Status')." </th>
-	    <th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Type')." </th>
-	    <th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Title')." </th>
+	    <th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Status')." </th>".
+	    //<th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Type')." </th>
+	    "<th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Title')." </th>
 	    <th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Requester')." </th>
 	    <th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Technician')." </th>
 	    <th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Opened','dashboard')."</th>
-	    <th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Closed')." </th>
-	    <th style='text-align:center; cursor:pointer;'> ". __('Time') ."</th>
-	</tr>
+		<th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'> ".__('Closed')." </th>
+		<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Time') ."</th>";
+		if (!empty($_REQUEST['sel_field'])) {
+			echo "<th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'>".$field_label['label']." </th>";
+		}
+echo "</tr>
     </thead>
 <tbody>
 ";
+
+// обнуляем сумму значений доп. полей
+$field_sum = 0;
 
 while($row = $DB->fetch_assoc($result_cham)){
 
@@ -508,7 +605,7 @@ while($row = $DB->fetch_assoc($result_cham)){
     if($row['type'] == 1) { $type = __('Incident'); }
     else { $type = __('Request'); }
 
-//Р·Р°РїСЂРѕСЃ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ-СЃРїРµС†РёР°Р»РёСЃС‚Р°
+// Получение ФИО специалиста
 $sql_user_tech = "
 SELECT glpi_tickets_users.tickets_id AS id, glpi_users.firstname AS name, glpi_users.realname AS sname
 FROM `glpi_groups_tickets`, glpi_tickets_users, glpi_users
@@ -521,7 +618,7 @@ $result_user_tech = $DB->query($sql_user_tech);
 
     $row_user_tech = $DB->fetch_assoc($result_user_tech);
 
-//Р·Р°РїСЂРѕСЃ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ-РёРЅРёС†РёР°С‚РѕСЂР°
+// Получение ФИО инициатора
 $sql_user_req = "
 SELECT glpi_tickets_users.tickets_id AS id, glpi_users.firstname AS name, glpi_users.realname AS sname
 FROM `glpi_groups_tickets`, glpi_tickets_users, glpi_users
@@ -531,33 +628,38 @@ AND glpi_tickets_users.users_id = glpi_users.id
 AND glpi_tickets_users.type = 1
 ".$entidade_u;
 $result_user_req = $DB->query($sql_user_req);
+$row_user_req = $DB->fetch_assoc($result_user_req);
 
-    $row_user_req = $DB->fetch_assoc($result_user_req);
+// Получение значения поля для каждой заявки
+if (!empty($_REQUEST['sel_field'])) {
+	$sql_field_content = "SELECT ".$field_name." AS content
+		FROM ".$field_table."
+		WHERE items_id = ".$row['id'];
+	$result_field_content = $DB->query($sql_field_content);
+	$row_field_content = $DB->fetch_assoc($result_field_content);
 
-//grupo
-$sql_tec = "SELECT name
-FROM `glpi_groups` , `glpi_groups_tickets`
-WHERE `glpi_groups_tickets`.tickets_id = ".$row['id']."
-AND glpi_groups.id = glpi_groups_tickets.groups_id
-AND glpi_groups_tickets.type = 2
-".$entidade." ";
-
-$result_tec = $DB->query($sql_tec);
-$row_tec = $DB->fetch_assoc($result_tec);
+	// вычисление суммы значений
+	if (isset($_REQUEST['field_sum'])) {
+		$field_sum += ((float)$row_field_content['content'] > 0 ? (float)$row_field_content['content'] : 0);
+	}
+}
 
 //С„РѕСЂРјРёСЂРѕРІР°РЅРёРµ СЃРѕРґРµСЂР¶Р°РЅРёСЏ С‚Р°Р±Р»РёС†С‹ РґР°РЅРЅС‹С…
 echo "
 <tr style='font-weight:normal; font-size:11px;'>
     <td style='text-align:center; vertical-align:middle; font-weight:bold'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
-    <td style='vertical-align:middle; text-align: left;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])."  </td>
-    <td style='vertical-align:middle;text-align:center;'> ". $type ." </td>
-    <td style='vertical-align:middle;'> ". substr($row['name'],0,55) ." </td>
+    <td style='vertical-align:middle; text-align: left;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])."  </td>".
+    //<td style='vertical-align:middle;text-align:center;'> ". $type ." </td>
+    "<td style='vertical-align:middle;'> ". substr($row['name'],0,55) ." </td>
     <td style='vertical-align:middle;'> ". $row_user_req['name'] ." ".$row_user_req['sname'] ." </td>
     <td style='vertical-align:middle;'> ". $row_user_tech['name'] ." ".$row_user_tech['sname'] ." </td>
     <td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
     <td style='vertical-align:middle; text-align:center;'> ". conv_data_hora($row['closedate']) ." </td>
-    <td style='vertical-align:middle; text-align:center;'> ". time_ext($row['time']) ."</td>
-</tr>";
+	<td style='vertical-align:middle; text-align:center;'> ". time_ext($row['time']) ."</td>";
+	if (!empty($_REQUEST['sel_field'])) {
+		echo "<td>".$row_field_content['content']."</td>";
+	}
+echo "</tr>";
 
 }
 
@@ -567,6 +669,9 @@ echo "</tbody>
 
 
 <script type="text/javascript" charset="utf-8">
+
+$('#field_sum')
+	.text("<?php echo $field_sum; ?>");
 
 $('#grupo')
     .removeClass( 'display' )
@@ -647,10 +752,6 @@ else {
 }
 }
 ?>
-
-<script type="text/javascript" >
-    $(document).ready(function() { $("#sel1").select2({dropdownAutoWidth : true}); });
-</script>
 
 </div>
 </div>

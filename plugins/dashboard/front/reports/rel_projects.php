@@ -162,12 +162,10 @@ else {
 	        </div>
 	   </div>
 </div>
-
-<script type="text/javascript" >
-	$(document).ready(function() { $("#sel1").select2({dropdownAutoWidth : true}); });
-</script>
-
 <?php
+echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
 
 if(isset($_GET['con'])) {
 

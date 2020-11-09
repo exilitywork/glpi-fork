@@ -63,37 +63,43 @@ global $DB;
 
 global $DB;
 
-if(!empty($_REQUEST['date1']))
-{	
+if(!empty($_REQUEST['date1'])) {	
 	$data_ini =  $_REQUEST['date1'];	
 	$data_fin = $_REQUEST['date2'];
 }
-
 else {
 	$data_ini = date("Y-m-01");
 	$data_fin = date("Y-m-d");
 } 
 
-//tech POST
+// специалист
 if(!isset($_POST["sel_tec"])) {
 	$id_tec = $_REQUEST["tec"];	
 }
-
 else {
 	$id_tec = $_POST["sel_tec"];
 }
 
+// тип запроса: id
 if(isset($_GET["req_tec"])) {
 	$id_req = $_GET["req_tec"];
 }
 
+// тип запроса: name
 if(isset($_GET["req_name"])) {
 	$req_name = $_GET["req_name"];
 }
 
-//tech GET
+/*tech GET
 if(isset($_GET["sel_tec"])) {
 	$id_tec = $_GET["sel_tec"];
+}*/
+
+// доп. поле: id
+if(!empty($_REQUEST["sel_field"])) {
+    $id_field = $_REQUEST["sel_field"];
+} else {
+    $id_field = '';
 }
 
 $ano = date("Y");
@@ -250,6 +256,43 @@ $selected = $id_tec;
 			<td style="margin-top:2px;">
 				<?php
 					echo dropdown( $name, $options, $selected );
+
+					echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
+				?>
+			</td>
+		    </tr>
+		    <tr><td height="15px"></td></tr>
+			<tr><td style="color: white">Добавить поле (необязательно):</td>
+			<td style="margin-top:2px;">
+				<?php
+				// список дополнительных полей
+				$sql_fields = "
+					SELECT id , label
+					FROM `glpi_plugin_fields_fields`
+					ORDER BY `name` ASC";
+
+				$result_fields = $DB->query($sql_fields);
+				$arr_fields = array();
+				$arr_fields[0] = "-- Выберите поле --" ;
+		
+				$DB->data_seek($result_fields, 0) ;
+		
+				while ($row_result = $DB->fetch_assoc($result_fields)){
+					$v_row_result = $row_result['id'];
+					$arr_fields[$v_row_result] = $row_result['label'] ." (". $row_result['id'] .")" ;
+				}
+		
+				$name = 'sel_field';
+				$options = $arr_fields;
+				$selected = $id_field;
+
+				echo dropdown( $name, $options, $selected );
+
+				echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
 				?>
 			</td>
 		</tr>
@@ -298,7 +341,7 @@ if($id_tec == 0) {
 	echo '<script language="javascript"> location.href="graf_tecnico.php"; </script>';
 }
 
-// nome do tecnico
+// имя специалиста
 $sql_nm = "
 SELECT DISTINCT glpi_users.`id` AS id , glpi_users.firstname AS name, glpi_users.`realname` AS sname, glpi_users.picture
 FROM `glpi_users` , glpi_tickets_users
@@ -363,7 +406,28 @@ $pend = $DB->result($result_stat,0,'pend') + 0;
 $solve = $DB->result($result_stat,0,'solve') + 0;
 $close = $DB->result($result_stat,0,'close') + 0;
 
-echo '<div id="entidade2" class="col-md-12 fluid" style="margin-bottom: 15px;">';
+// Получение названия доп. поля
+if (!empty($_REQUEST['sel_field'])) {
+	$sql_field_info = "
+		SELECT id, label, name, plugin_fields_containers_id
+		FROM `glpi_plugin_fields_fields`
+		WHERE id = ".$id_field." ";
+	$result_field_info = $DB->query($sql_field_info);
+	$field_info = $DB->fetch_assoc($result_field_info);
+	$field_name = $field_info['name'];
+	$field_label = $field_info['label'];
+
+	// Получение названия таблицы со значениями доп. поля
+	$sql_field_cont_name = "
+	SELECT name
+	FROM `glpi_plugin_fields_containers`
+	WHERE id = ".$field_info['plugin_fields_containers_id']." ";
+	$result_field_cont_name = $DB->query($sql_field_cont_name);
+	$field_cont_name = $DB->fetch_assoc($result_field_cont_name);
+	$field_table = "glpi_plugin_fields_ticket".$field_cont_name['name']."s";
+}
+
+echo '<div id="entidade2" class="col-md-12 fluid" style="margin-top: -90px !important;"">';
 echo '<div id="name"  style="margin-top: 15px;">
 <span><img class="avatar2" width="43px" height="45px" src="'.User::getURLForPicture($tec_name["picture"]).'"></img>&nbsp;&nbsp;</span>
 <span>'.$tec_name['name'].' '.$tec_name['sname'].'</span>';

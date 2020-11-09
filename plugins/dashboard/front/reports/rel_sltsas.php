@@ -446,11 +446,10 @@ if($conta_cons > 0) {
 				<tr></tr>
 				</table></div>";	
 			}							
+			echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
 			?>
-			
-			<script type="text/javascript" >
-			$(document).ready(function() { $("#sel1").select2({dropdownAutoWidth : true}); });
-			</script>
 			</div>
 		</div>
 	

@@ -40,6 +40,11 @@ if(!empty($_GET["sel_grp"])) {
 	$id_grp = $_GET["sel_grp"];
 }
 
+if(!empty($_REQUEST["sel_field"])) {
+    $id_field = $_REQUEST["sel_field"];
+} else {
+    $id_field = '';
+}
 ?>
 
 <html>
@@ -166,7 +171,7 @@ a:hover { color: #000099; }
 	</div>
         <div id="datas-tec" class="span12 fluid" >
 		    <form id="form1" name="form1" class="form_rel" method="post" action="rel_tecnico.php?con=1">
-		    <table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef" >
+		    <table border="0" cellspacing="0" cellpadding="3" bgcolor="#efefef" width="850">
 		    <tr>
 				<td style="width: 310px;">
 				<?php
@@ -221,13 +226,72 @@ a:hover { color: #000099; }
 		$selected = $id_tec;
 		
 		echo dropdown( $name, $options, $selected );
-		
+
+		echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
 		?>
 			</td>
 			</tr>
 			<tr><td height="15px"></td></tr>
+			<tr><td style="color: white">Добавить поле (необязательно):</td>
+				<td style="margin-top:2px;">
+				<?php
+				// список дополнительных полей
+				$sql_fields = "
+					SELECT id , label
+					FROM `glpi_plugin_fields_fields`
+					ORDER BY `name` ASC";
+
+				$result_fields = $DB->query($sql_fields);
+				$arr_fields = array();
+				$arr_fields[0] = "-- Выберите поле --" ;
+		
+				$DB->data_seek($result_fields, 0) ;
+		
+				while ($row_result = $DB->fetch_assoc($result_fields)){
+					$v_row_result = $row_result['id'];
+					$arr_fields[$v_row_result] = $row_result['label'] ." (". $row_result['id'] .")" ;
+				}
+		
+				$name = 'sel_field';
+				$options = $arr_fields;
+				$selected = $id_field;
+
+				echo dropdown( $name, $options, $selected );
+
+				echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
+				?>
+				</td>
+				<td style="width: 300px; padding-left: 15px; text-align: left;"> 
+					<input type="checkbox" name="field_sum" value="1"> <?php echo "Суммировать"; ?>
+				</td>
+			</tr>
+			<tr><td height="15px"></td></tr>
 			<tr>
 				<td colspan="2" align="center">
+					<?php
+						if(isset($id_req)) {
+							echo "<input type='hidden' name='req_grp' value='".$id_req."'>";
+						}
+						if(isset($id_cat)) {
+							echo "<input type='hidden' name='cat_grp' value='".$id_cat."'>";
+						}
+						if(isset($id_grp)) {
+							echo "<input type='hidden' name='sel_grp' value='".$id_grp."'>";
+						}
+						if(isset($_GET['cat_name'])) {
+							echo "<input type='hidden' name='cat_name' value='".$_GET['cat_name']."'>";
+						}
+						if(isset($_GET['req_name'])) {
+							echo "<input type='hidden' name='req_name' value='".$_GET['req_name']."'>";
+						}
+						if(isset($_GET['grp_name'])) {
+							echo "<input type='hidden' name='grp_name' value='".$_GET['grp_name']."'>";
+						}
+					?>
 					<button class="btn btn-primary btn-sm" type="submit" name="submit" value="Atualizar" ><i class="fa fa-search"></i>&nbsp; <?php echo __('Consult','dashboard'); ?></button>
 					<button class="btn btn-primary btn-sm" type="button" name="Limpar" value="Limpar" onclick="location.href='<?php echo $url2 ?>'" > <i class="fa fa-trash-o"></i>&nbsp; <?php echo __('Clean','dashboard'); ?> </button></td>
 				</td>
@@ -582,8 +646,28 @@ if($con == "1") {
 		
 	$tech = $row['firstname'] ." ". $row['realname'];
 
+	// Получение названия доп. поля
+	if (!empty($_REQUEST['sel_field'])) {
+		$sql_field_label = "
+			SELECT id, label, name, plugin_fields_containers_id
+			FROM `glpi_plugin_fields_fields`
+			WHERE id = ".$id_field." ";
+		$result_field_label = $DB->query($sql_field_label);
+		$field_label = $DB->fetch_assoc($result_field_label);
+		$field_name = $field_label['name'];
+
+		// Получение названия таблицы со значениями доп. поля
+		$sql_field_cont_name = "
+		SELECT name
+		FROM `glpi_plugin_fields_containers`
+		WHERE id = ".$field_label['plugin_fields_containers_id']." ";
+		$result_field_cont_name = $DB->query($sql_field_cont_name);
+		$field_cont_name = $DB->fetch_assoc($result_field_cont_name);
+		$field_table = "glpi_plugin_fields_ticket".$field_cont_name['name']."s";
+	}
+
 	echo "
-	<div class='well info_box fluid col-md-12 report' style='margin-left: -1px;'>
+	<div class='well info_box fluid col-md-12 report' style='margin-left: -1px; margin-top: -90px;'>
 	<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
 		<tr style='width: 450px;'>
 			<td><img class='avatar2' width='40px' height='43px' src='".User::getURLForPicture($row['picture'])."'></img></td>
@@ -600,6 +684,19 @@ if($con == "1") {
 			</td>
 		</tr>
 	</table>";
+
+	// вывод суммы значений доп. полей
+	if (isset($_REQUEST['field_sum'])) {
+		echo "
+		<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
+		<tr style='width: 450px;'>
+			<td></td>
+			<td style='vertical-align:middle;'> <span style='color: #000;'>".$field_label['label'].": </span><span id='field_sum'>"."</span></td>
+		</tr>
+		</table>";
+	}
+
+	// вывод названия категории
 	if(isset($_GET['cat_name'])) {
 		echo "
 		<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
@@ -609,6 +706,8 @@ if($con == "1") {
 		</tr>
 		</table>";
 	}
+
+	// вывод типа запроса
 	if(isset($_GET['req_name'])) {
 		echo "
 		<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
@@ -619,6 +718,7 @@ if($con == "1") {
 		</table>";
 	}
 
+	// вывод группы специалиста
 	if(isset($_GET['grp_name'])) {
 		echo "
 		<table class='fluid'  style='width:100%; font-size: 18px; font-weight:bold;' cellpadding = 1px>
@@ -675,15 +775,18 @@ if($con == "1") {
 		<thead>
 			<tr>
 				<th style='text-align:center; cursor:pointer;'> ". __('Tickets','dashboard') ." </th>
-				<th style='text-align:center; cursor:pointer;'> ".__('Status')." </th>
-				<th style='text-align:center; cursor:pointer;'> ". __('Type') ."</th>
-				<th style='text-align:center; cursor:pointer;'> ". __('Title') ."</th>
+				<th style='text-align:center; cursor:pointer;'> ".__('Status')." </th>".
+				//<th style='text-align:center; cursor:pointer;'> ". __('Type') ."</th>
+				"<th style='text-align:center; cursor:pointer;'> ". __('Title') ."</th>
 				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Requester') ."</th>
 				<th style='text-align:center; cursor:pointer;'> ". __('Opened','dashboard') ."</th>
 				<th style='text-align:center; cursor:pointer;'> ". __('Closed','dashboard') ."</th>
-				<th style='text-align:center; cursor:pointer;'> ". __('Time') ."</th>
-				<th style='text-align:center;'> ". __('Satisfaction','dashboard') ."</th>
-			</tr>
+				<th style='text-align:center; cursor:pointer;'> ". __('Time') ."</th>";
+				//<th style='text-align:center;'> ". __('Satisfaction','dashboard') ."</th>
+				if (!empty($_REQUEST['sel_field'])) {
+					echo "<th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'>".$field_label['label']." </th>";
+				}
+				echo "</tr>
 		</thead>
 	<tbody>
 	";
@@ -718,20 +821,26 @@ if($con == "1") {
 		<thead>
 			<tr>
 				<th style='text-align:center; cursor:pointer; vertical-align:middle; font-weight:bold;'> ". __('Tickets','dashboard') ." </th>
-				<th style='text-align:center; cursor:pointer; font-size: 12px; vertical-align:middle;'> ".__('Status')." </th>
-				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Type') ."</th>
-				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Title') ."</th>
+				<th style='text-align:center; cursor:pointer; font-size: 12px; vertical-align:middle;'> ".__('Status')." </th>".
+				//<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Type') ."</th>
+				"<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Title') ."</th>
 				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Requester') ."</th>
 				<th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Opened' ,'dashboard') ."</th>
 			   <th style='text-align:center; cursor:pointer; vertical-align:middle;'> ". __('Closed','dashboard') ."</th>
-				<th style='text-align:center; cursor:pointer;'> ". __('Time') ."</th>
-			</tr>
+				<th style='text-align:center; cursor:pointer;'> ". __('Time') ."</th>";
+				if (!empty($_REQUEST['sel_field'])) {
+					echo "<th style='font-size: 12px; font-weight:bold; text-align: center; cursor:pointer; vertical-align:middle;'>".$field_label['label']." </th>";
+				}
+				echo "</tr>
 		</thead>
 	<tbody>
 	";
 	}
 
 }
+
+// обнуляем сумму значений доп. полей
+$field_sum = 0;
 
 //listar chamados
 while($row = $DB->fetch_assoc($result_cham)){
@@ -772,6 +881,19 @@ while($row = $DB->fetch_assoc($result_cham)){
 	$result_user = $DB->query($sql_user);			
 	$row_user = $DB->fetch_assoc($result_user);
 	
+	// Полчение значения поля для каждой заявки
+	if (!empty($_REQUEST['sel_field'])) {
+		$sql_field_content = "SELECT ".$field_name." AS content
+			FROM ".$field_table."
+			WHERE items_id = ".$row['id'];
+		$result_field_content = $DB->query($sql_field_content);
+		$row_field_content = $DB->fetch_assoc($result_field_content);
+
+		// вычисление суммы значений
+		if (isset($_REQUEST['field_sum'])) {
+			$field_sum += ((float)$row_field_content['content'] > 0 ? (float)$row_field_content['content'] : 0);
+		}
+	}
 
 	if($satisfacao != '' || $satisfacao > 0) {
 
@@ -788,18 +910,21 @@ while($row = $DB->fetch_assoc($result_cham)){
 		echo "
 		<tr style='font-size:11px;'>
 			<td style='vertical-align:middle; text-align:center; font-weight:bold;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
-			<td style='vertical-align:middle; font-weight:normal;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])." </td>
-			<td style='vertical-align:middle; font-weight:normal;'> ". $type ." </td>
-			<td style='vertical-align:middle; font-weight:normal;'> ". substr($row['name'],0,70) ." </td>
+			<td style='vertical-align:middle; font-weight:normal;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])." </td>".
+			//<td style='vertical-align:middle; font-weight:normal;'> ". $type ." </td>
+			"<td style='vertical-align:middle; font-weight:normal;'> ". substr($row['name'],0,70) ." </td>
 			<td style='vertical-align:middle; font-weight:normal;'> ". $row_user['name'] ." ".$row_user['sname'] ." </td>
 			<td style='vertical-align:middle; font-weight:normal; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
 			<td style='vertical-align:middle; font-weight:normal; text-align:center;'> ". conv_data_hora($row['closedate']) ." </td>
-			<td style='vertical-align:middle; font-weight:normal; text-align:right;'> ". time_ext($row['time']) ."</td>
-			<td style='vertical-align:middle; text-align:center;'>		
+			<td style='vertical-align:middle; font-weight:normal; text-align:right;'> ". time_ext($row['time']) ."</td>";
+			/*<td style='vertical-align:middle; text-align:center;'>		
 				<span class='label' style=\"background:url('../img/stars/star". $satc1."_22.png') no-repeat;  
 				color:#000 !important; padding-left: 8px !important; padding-top: 4px; font-size:11px; \">".$satc1. "</span> 
-			</td>		
-		</tr>";
+			</td>	*/	
+			if (!empty($_REQUEST['sel_field'])) {
+				echo "<td>".$row_field_content['content']."</td>";
+			}
+		echo "</tr>";
 	}
 
 	else {
@@ -807,14 +932,17 @@ while($row = $DB->fetch_assoc($result_cham)){
 		echo "
 		<tr style='font-size:11px;'>
 			<td style='vertical-align:middle; text-align:center; font-weight:bold;'><a href=".$CFG_GLPI['url_base']."/front/ticket.form.php?id=". $row['id'] ." target=_blank >" . $row['id'] . "</a></td>
-			<td style='vertical-align:middle; font-weight:normal;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])." </td>
-			<td style='vertical-align:middle; font-weight:normal;'> ". $type ." </td>
-			<td style='vertical-align:middle; font-weight:normal;'> ". substr($row['name'],0,70) ." </td>
+			<td style='vertical-align:middle; font-weight:normal;'><img src=".$CFG_GLPI['url_base']."/pics/".$status1.".png title='".Ticket::getStatus($row['status'])."' style=' cursor: pointer; cursor: hand;'/>&nbsp; ".Ticket::getStatus($row['status'])." </td>".
+			//<td style='vertical-align:middle; font-weight:normal;'> ". $type ." </td>
+			"<td style='vertical-align:middle; font-weight:normal;'> ". substr($row['name'],0,70) ." </td>
 			<td style='vertical-align:middle; font-weight:normal;'> ". $row_user['name'] ." ".$row_user['sname'] ." </td>
 			<td style='vertical-align:middle; font-weight:normal; text-align:center;'> ". conv_data_hora($row['date']) ." </td>
 			<td style='vertical-align:middle; font-weight:normal; text-align:center;'> ". conv_data_hora($row['closedate']) ." </td>
-			<td style='vertical-align:middle; font-weight:normal; text-align:right;'> ". time_ext($row['time']) ."</td>
-		</tr>";
+			<td style='vertical-align:middle; font-weight:normal; text-align:right;'> ". time_ext($row['time']) ."</td>";
+			if (!empty($_REQUEST['sel_field'])) {
+				echo "<td>".$row_field_content['content']."</td>";
+			}
+		echo "</tr>";
 	    }
 }
 echo "</tbody>
@@ -822,6 +950,9 @@ echo "</tbody>
 		</div>"; ?>
 
 <script type="text/javascript" charset="utf-8">
+
+$('#field_sum')
+	.text("<?php echo $field_sum; ?>");
 
 $('#tec')
 	.removeClass( 'display' )
@@ -909,11 +1040,10 @@ else {
 }
 }
 
+echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
 ?>
-
-<script type="text/javascript" >
-	$(document).ready(function() { $("#sel1").select2({dropdownAutoWidth : true}); });
-</script>
 
 </div>
 </div>

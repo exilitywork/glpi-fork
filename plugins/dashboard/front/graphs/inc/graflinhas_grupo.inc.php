@@ -82,6 +82,7 @@ else {
 }
 
 //chamados mensais
+/*
 $arr_grfm = array();
 $arr_opened = array();
 
@@ -159,7 +160,7 @@ else {
 $quant_o = array_values($arr_opened) ;
 $quant_o2 = implode(',',$quant_o);
 
-$opened = array_sum($quant_o);
+$opened = array_sum($quant_o);*/
 
 // closed
 $status = "('5','6')";
@@ -241,6 +242,113 @@ $quant_c2 = implode(',',$quant_c);
 
 $closed = array_sum($quant_c);
 
+// Информация по открытым заявкам и обработка дополнительного поля
+$arr_grfm = array();
+$arr_opened = array();
+$arr_field = array();
+
+if($interval >= "31") {
+
+		$DB->data_seek($resultd, 0);
+		while ($row_result = $DB->fetch_assoc($resultd))
+		{
+			$querym = "
+			SELECT DISTINCT DATE_FORMAT(glpi_tickets.date, '%b-%Y') as day_l,  COUNT(glpi_tickets.id) as nb, DATE_FORMAT(glpi_tickets.date, '%Y-%m') as day";
+			if (!empty($_REQUEST['sel_field'])) {
+				$querym .= ", SUM(".$field_table.".".$field_name.") as field_sum";
+			}
+			$querym .= " FROM glpi_tickets, glpi_groups_tickets";
+			if (!empty($_REQUEST['sel_field'])) {
+				$querym .= "LEFT JOIN ".$field_table."
+				ON glpi_tickets.id = ".$field_table.".items_id";
+			}
+			$querym .= " WHERE glpi_tickets.is_deleted = '0'
+			AND DATE_FORMAT(glpi_tickets.date, '%Y-%m' ) = '".$row_result['day']."'
+			AND glpi_tickets.id = glpi_groups_tickets.tickets_id
+			AND glpi_groups_tickets.groups_id = ".$id_grp."
+			AND glpi_tickets.date ".$datas."
+			". $entidade_age;
+			if(isset($id_req)) {
+				$querym .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+			}
+			$querym .= " GROUP BY day
+			ORDER BY day ";
+
+			$resultm = $DB->query($querym) or die('erro m');
+			$row_result2 = $DB->fetch_assoc($resultm);
+
+			$v_row_result = $row_result['day'];
+			if($row_result2['nb'] != '') {
+				$arr_grfm[$v_row_result] = $row_result2['nb'];
+			}
+			else {
+				$arr_grfm[$v_row_result] = 0;
+			}
+		}
+
+		$arr_opened = $arr_grfm;
+		$label = json_encode(array_keys($arr_monthsn));
+}
+
+else {
+		$DB->data_seek($resultd, 0);
+		while ($row_result = $DB->fetch_assoc($resultd))
+		{
+			$querym = "
+				SELECT DISTINCT DATE_FORMAT(glpi_tickets.date, '%b-%d') as day_l,  COUNT(glpi_tickets.id) as nb, DATE_FORMAT(glpi_tickets.date, '%Y-%m-%d') as day";
+			if (!empty($_REQUEST['sel_field'])) {
+				$querym .= ", SUM(".$field_table.".".$field_name.") as field_sum";
+			}
+			$querym .= " FROM glpi_groups_tickets, glpi_tickets ";
+			if (!empty($_REQUEST['sel_field'])) {
+				$querym .= "LEFT JOIN ".$field_table."
+				ON glpi_tickets.id = ".$field_table.".items_id";
+			}
+			$querym .= " WHERE glpi_tickets.is_deleted = '0'
+				AND DATE_FORMAT(glpi_tickets.date, '%Y-%m-%d' ) = '".$row_result['day']."'
+				AND glpi_tickets.id = glpi_groups_tickets.tickets_id
+				AND glpi_groups_tickets.groups_id = ".$id_grp."
+				AND glpi_tickets.date ".$datas."
+				". $entidade_age;
+			if(isset($id_req)) {
+				$querym .= " AND glpi_tickets.requesttypes_id = ".($id_req < 0 ? '0' : $id_req);
+			}
+			$querym .= " GROUP BY day
+			ORDER BY day ";
+
+			$resultm = $DB->query($querym) or die('SQL Error. Check logs!');
+			$row_result2 = $DB->fetch_assoc($resultm);
+
+			$v_row_result = $row_result['day'];
+			if($row_result2['nb'] != '') {
+				$arr_grfm[$v_row_result] = $row_result2['nb'];
+			}
+			else {
+				$arr_grfm[$v_row_result] = 0;
+			}
+			if (!empty($_REQUEST['sel_field'])) {
+				if($row_result2['field_sum'] != '') {
+					$arr_field[$v_row_result] = $row_result2['field_sum'];
+				}
+				else {
+					$arr_field[$v_row_result] = 0;
+				}
+			}
+		}
+
+		$arr_opened = $arr_grfm;
+		$label = json_encode(array_keys($arr_daysn));
+}
+
+$quant_o = array_values($arr_opened);
+$quant_o2 = implode(',',$quant_o);
+$opened = array_sum($quant_o);
+
+if (!empty($_REQUEST['sel_field'])) {
+	$quant_field = array_values($arr_field);
+	$quant_field2 = implode(',',$quant_field);
+	$field_sum = array_sum($quant_field);
+}
 
 //backlog
 if($interval >= "31") {
@@ -318,6 +426,7 @@ for ($i=1; $i < ($conta); $i++) {
 }*/
 
 
+
 echo "
 <script type='text/javascript'>
 $(function () {
@@ -355,18 +464,25 @@ $(function () {
 
             },
           		 
-     		yAxis: {
-	 						minPadding: 0,
-   	 					maxPadding: 0,
-    						min: 0,
-    						//max:1,
-   						showLastLabel:false,
-    						//tickInterval:1,
-
+     		yAxis: [{
+	 			minPadding: 0,
+   	 			maxPadding: 0,
+    			min: 0,
+    			//max: 40,
+   				showLastLabel:false,
+    			//tickInterval:1,
                 title: { // Primary yAxis
                     text: '".__('Tickets','dashboard')."'
-                }
-             },  
+				}";
+			if (!empty($_REQUEST['sel_field'])) {
+				echo "}, {
+					title: { // Secondary yAxis
+						text: '".$field_label."'
+					},
+					opposite: true";
+			}
+			echo "}],
+
       
 				plotOptions: {
                 column: {
@@ -388,7 +504,23 @@ $(function () {
 		            marker: {
 		                enabled: false
 		            },
-		        },
+				},
+				series: {
+                    events: {
+                        legendItemClick: function() {
+							var type = this.visible;
+							(!type) ? this.show(): this.hide();
+                            var _i = this._i;
+                            Highcharts.each(this.chart.series, function(p, i) {
+                                //if (type === p.yAxis && _i !== p._i) {
+                                    (!p.visible) ? p.show(): p.hide()
+								//} else {
+									//(!p.visible) ? p.show(): p.hide()
+								//}
+                            })
+                        }
+                    }
+                }
             },
 
             tooltip: {
@@ -422,8 +554,19 @@ $(function () {
                 type: 'spline',
                 dataLabels: { enabled: false },
                 color: '#db5e5e',
-                data: [$back]
-            	}
+				data: [$back],";
+				if (!empty($_REQUEST['sel_field'])) {
+					echo "},
+						{
+						name: '".$field_label." (".$field_sum.")',
+						dataLabels: { enabled: true },
+						data: [$quant_field2],
+						color: '#db5e5e',
+						//color: 'transparent',
+						yAxis: 1,
+						visible: false";
+				}
+				echo "}
                 ]
         });
     });

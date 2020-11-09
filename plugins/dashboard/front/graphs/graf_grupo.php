@@ -62,37 +62,44 @@ global $DB;
 
 global $DB;
 
-if(!empty($_REQUEST['date1']))
-{	
+if(!empty($_REQUEST['date1'])) {	
 	$data_ini =  $_REQUEST['date1'];	
 	$data_fin = $_REQUEST['date2'];
 }
-
 else {
 	$data_ini = date("Y-m-01");
 	$data_fin = date("Y-m-d");
 } 
 
-//group
+// группа
 if(!isset($_POST["sel_grp"])) {
-	$id_grp = $_GET["grp"];	
+	$id_grp = $_GET["sel_grp"];	
 }
-
 else {
 	$id_grp = $_POST["sel_grp"];
 }
 
+// тип запроса: id
 if(isset($_GET["req_grp"])) {
 	$id_req = $_GET["req_grp"];
 }
 
+// тип запроса: name
 if(isset($_GET["req_name"])) {
 	$req_name = $_GET["req_name"];
 }
 
 //tech GET
+/*
 if(isset($_GET["sel_grp"])) {
 	$id_grp = $_GET["sel_grp"];
+}*/
+
+// доп. поле: id
+if(!empty($_REQUEST["sel_field"])) {
+    $id_field = $_REQUEST["sel_field"];
+} else {
+    $id_field = '';
 }
 
 $ano = date("Y");
@@ -232,9 +239,46 @@ $selected = $id_grp;
 				?>	
 			</td>
 			<td style="margin-top:2px;">
-			<?php
-			echo dropdown( $name, $options, $selected );
-			?>
+				<?php
+					echo dropdown( $name, $options, $selected );
+
+					echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
+				?>
+			</td>
+		    </tr>
+		    <tr><td height="15px"></td></tr>
+			<tr><td style="color: white">Добавить поле (необязательно):</td>
+			<td style="margin-top:2px;">
+				<?php
+				// список дополнительных полей
+				$sql_fields = "
+					SELECT id , label
+					FROM `glpi_plugin_fields_fields`
+					ORDER BY `name` ASC";
+
+				$result_fields = $DB->query($sql_fields);
+				$arr_fields = array();
+				$arr_fields[0] = "-- Выберите поле --" ;
+		
+				$DB->data_seek($result_fields, 0) ;
+		
+				while ($row_result = $DB->fetch_assoc($result_fields)){
+					$v_row_result = $row_result['id'];
+					$arr_fields[$v_row_result] = $row_result['label'] ." (". $row_result['id'] .")" ;
+				}
+		
+				$name = 'sel_field';
+				$options = $arr_fields;
+				$selected = $id_field;
+
+				echo dropdown( $name, $options, $selected );
+
+				echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
+				?>
 			</td>
 		</tr>
 		<tr><td height="15px"></td></tr>
@@ -321,32 +365,57 @@ if(isset($id_req)) {
 $result_quant = $DB->query($query_quant);
 $total = $DB->fetch_assoc($result_quant);
 
-echo '<div id="entidade" class="col-md-12 col-sm-12 fluid" >';
+echo '<div id="entidade" class="col-md-12 col-sm-12 fluid" style="margin-top: -90px;">';
 echo $grp_name['name'];
 if(isset($req_name)) {
 	echo '<span>, тип запроса: '.$req_name.'</span>';
 }
 echo " - <span> ".$total['total']." ".__('Tickets','dashboard')."</span>";
 echo "</div>";
+
+// Получение названия доп. поля
+if (!empty($_REQUEST['sel_field'])) {
+	$sql_field_info = "
+		SELECT id, label, name, plugin_fields_containers_id
+		FROM `glpi_plugin_fields_fields`
+		WHERE id = ".$id_field." ";
+	$result_field_info = $DB->query($sql_field_info);
+	$field_info = $DB->fetch_assoc($result_field_info);
+	$field_name = $field_info['name'];
+	$field_label = $field_info['label'];
+
+	// Получение названия таблицы со значениями доп. поля
+	$sql_field_cont_name = "
+	SELECT name
+	FROM `glpi_plugin_fields_containers`
+	WHERE id = ".$field_info['plugin_fields_containers_id']." ";
+	$result_field_cont_name = $DB->query($sql_field_cont_name);
+	$field_cont_name = $DB->fetch_assoc($result_field_cont_name);
+	$field_table = "glpi_plugin_fields_ticket".$field_cont_name['name']."s";
+}
 ?>
 
 
-<div id="graf_linhas" class="col-md-12" style="height: 450px; margin-left: 0px;">
+<div id="graf_linhas" class="col-md-12" style="height: 450px; margin-left: 0px; margin-top: -40px;">
 	<?php include ("./inc/graflinhas_grupo.inc.php"); ?>
 </div>
 
 <!--
 <div id="graf2" class="col-md-6" >
-	<?php  include ("./inc/grafpie_stat_grupo.inc.php"); ?>
+	<?php  //include ("./inc/grafpie_stat_grupo.inc.php"); ?>
 </div>
 
 <div id="graf_tipo" class="col-md-6" style="margin-left: 0%;">
-	<?php include ("./inc/grafpie_tipo_grupo.inc.php");  ?>
+	<?php //include ("./inc/grafpie_tipo_grupo.inc.php");  ?>
 </div>
 -->
 
 <div id="graf4" class="col-md-12" style="height: 450px; margin-left: 0px;">
 	<?php include ("./inc/grafcat_grupo.inc.php"); ?>
+</div>
+
+<div id="graf_user" class="col-md-12" style="height: 450px; margin-top:30px; margin-bottom:120px; margin-left: 0px;">
+	<?php  include ("./inc/grafbar_user_grupo.inc.php"); ?>
 </div>
 
 <?php
@@ -359,17 +428,13 @@ echo "</div>";
 
 <!--
 <div id="graf_time" class="col-md-6">
-	<?php include ("./inc/grafbar_age_group.inc.php");  ?>
+	<?php //include ("./inc/grafbar_age_group.inc.php");  ?>
 </div>
 
 <div id="graf_prio" class="col-md-6" style="margin-left: 0%;">
-	<?php include ("./inc/grafpie_prio_group.inc.php");  ?>
+	<?php //include ("./inc/grafpie_prio_group.inc.php");  ?>
 </div>
 -->
-
-<div id="graf_user" class="col-md-12" style="height: 450px; margin-top:30px; margin-bottom:120px; margin-left: 0px;">
-	<?php  include ("./inc/grafbar_user_grupo.inc.php"); ?>
-</div>
 
 <div id="graf_time1" class="col-md-12" style="height: 450px; margin-top:20px; margin-left: 0px;">
 	<?php  include ("./inc/grafpie_time_grupo.inc.php"); ?>

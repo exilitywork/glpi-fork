@@ -577,11 +577,10 @@ else {
 
 //output report
 echo $content;		
-?>
-				
-	<script type="text/javascript" charset="utf-8">
-		$(document).ready(function() { $("#sel1").select2({dropdownAutoWidth : true}); });			
-	</script>
+echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
+			?>
 		</div>
 		</div>	
 	</div>

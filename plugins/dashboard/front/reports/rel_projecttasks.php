@@ -137,12 +137,12 @@ a:hover {
     </div>
 </div>
 
-<script type="text/javascript" >
-	$(document).ready(function() { $("#sel1").select2({dropdownAutoWidth : true}); });
-</script>
-
 <?php
 
+echo "<script type='text/javascript' >
+    				$(document).ready(function() { $(\"#".$name."\").select2({dropdownAutoWidth : true}); });
+					</script>";
+					
 if(isset($_GET['sel_pro'])) {
 
 $pro_id = $_GET['sel_pro'];
