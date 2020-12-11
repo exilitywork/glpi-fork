@@ -40,8 +40,17 @@ class PluginTelegrambotBot {
    }
 
    static public function sendMessage($to, $content) {
-      $test_conn = self::isSiteAvailible("https://api.telegram.org/", 2) ? true : false;
+      global $DB;
+
+      $test_conn = self::isSiteAvailable("https://api.telegram.org/", 2) ? true : false;
       if (!$test_conn) {
+         $DB->update(
+            'glpi_plugins', [
+               'state'    => 4
+            ], [
+               'directory'        => 'telegrambot'
+            ]
+         );   
          $logfile="/var/www/glpi/files/_log/telegrambot.log";
          if (!file_exists($logfile)) {
             $newfile = fopen($logfile, 'w+');
@@ -49,10 +58,11 @@ class PluginTelegrambotBot {
          }
          error_log(date("Y-m-d H:i:s")." - ERROR: Telegram API is unavailable now!\n", 3, $logfile);
          return;
+      } else {
+         $chat_id = self::getChatID($to);
+         $telegram = self::getTelegramInstance();
+         $result = Request::sendMessage(['chat_id' => $chat_id, 'text' => $content]);
       }
-      $chat_id = self::getChatID($to);
-      $telegram = self::getTelegramInstance();
-      $result = Request::sendMessage(['chat_id' => $chat_id, 'text' => $content]);
    }
 
    static public function getUpdates() {
@@ -112,7 +122,7 @@ class PluginTelegrambotBot {
       );
    }
 
-   static private function isSiteAvailible($url, $timeout) {
+   static private function isSiteAvailable($url, $timeout) {
       if(!filter_var($url, FILTER_VALIDATE_URL)){
         return false;
       }
