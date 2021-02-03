@@ -1,0 +1,41 @@
+<root>
+   <name>Fields Upgrade for Belwest</name>
+   <key>fieldsupgrade</key>
+   <state>dev</state>
+   <description>
+      <short>
+         <en>Customizes the list of accessible ticket categories for ticket requesters.</en>
+      </short>
+      <long>
+         <en>
+         </en>
+      </long>
+   </description>
+   <homepage></homepage>
+   <download></download>
+   <issues></issues>
+   <readme></readme>
+   <authors>
+      <author>BELWEST</author>
+      <author>Kapeshko Oleg</author>
+   </authors>
+   <versions>
+      <version>
+         <num>1.0</num>
+         <compatibility>9.4</compatibility>
+      </version>
+   </versions>
+   <langs>
+      <lang>en_GB</lang>
+      <lang>fr_FR</lang>
+   </langs>
+   <license></license>
+   <tags>
+      <fr>
+         <tag>Tickets</tag>
+      </fr>
+      <en>
+         <tag>Tickets</tag>
+      </en>
+   </tags>
+</root>
